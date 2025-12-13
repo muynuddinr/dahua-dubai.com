@@ -253,7 +253,7 @@ export default function HDCVITenPage() {
                   className="absolute inset-0 bg-black bg-opacity-40 rounded-2xl"
                   style={{
                     backgroundImage:
-                      'url("https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=1200&h=675&fit=crop")',
+                      'url("/images/hdvv.png")',
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                   }}
