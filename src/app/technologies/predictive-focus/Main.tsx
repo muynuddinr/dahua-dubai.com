@@ -1,11 +1,12 @@
-'use client'
+"use client";
 
-import React from 'react'
-import Image from 'next/image'
-import { motion } from 'framer-motion'
-import { Focus, Zap, Camera, Crosshair, Target, Eye } from 'lucide-react'
-import { useState, useEffect } from 'react'
-import { useInView } from 'react-intersection-observer'
+import React from "react";
+import Image from "next/image";
+import { motion, useReducedMotion, Variants } from "framer-motion";
+import { Focus, Zap, Camera, Crosshair, Target, Eye } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useInView } from "react-intersection-observer";
+
 function FeatureCard({
   icon: Icon,
   iconBg,
@@ -13,27 +14,77 @@ function FeatureCard({
   title,
   description,
 }: {
-  icon: React.ElementType
-  iconBg: string
-  iconColor: string
-  title: string
-  description: string
+  icon: React.ElementType;
+  iconBg: string;
+  iconColor: string;
+  title: string;
+  description: string;
 }) {
   return (
     <motion.div
       whileHover={{ y: -10, scale: 1.05 }}
       className="bg-white rounded-xl p-8 flex flex-col items-center text-center hover:shadow-xl transition-all duration-300"
     >
-      <div className={`${iconBg} w-16 h-16 rounded-full flex items-center justify-center mb-6`}>
+      <div
+        className={`${iconBg} w-16 h-16 rounded-full flex items-center justify-center mb-6`}
+      >
         <Icon size={32} className={iconColor} />
       </div>
       <h3 className="text-xl font-bold text-gray-900 mb-4">{title}</h3>
       <p className="text-gray-600 leading-relaxed">{description}</p>
     </motion.div>
-  )
+  );
 }
 
 export default function PredictiveFocusPage() {
+  const [isLoaded, setIsLoaded] = useState(false)
+
+
+  const shouldReduceMotion = useReducedMotion();
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
+  const textVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6 },
+    },
+  };
+
+  const imageVariants: Variants = {
+    hidden: { scale: 1.1 },
+    visible: {
+      scale: 1,
+      transition: { duration: 1.5, ease: "easeOut" },
+    },
+  };
+
+  const reducedMotionVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.5 } },
+  };
+
+  const mobileBannerData = {
+    image: "/mobile/tech/predictive-focus.jpg",
+    title: "Predictive Focus",
+    subtitle: "Algorithm",
+    description:
+      "Next-generation AI-powered focusing technology that predicts focus requirements before they are needed, ensuring crystal-clear capture with unprecedented accuracy.",
+  };
+
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -41,51 +92,55 @@ export default function PredictiveFocusPage() {
       y: 0,
       transition: { duration: 0.6 },
     },
-  }
+  };
   const Counter = ({
     value,
-    suffix = '',
-    duration = 2
+    suffix = "",
+    duration = 2,
   }: {
-    value: string
-    suffix?: string
-    duration?: number
+    value: string;
+    suffix?: string;
+    duration?: number;
   }) => {
-    const [count, setCount] = useState(0)
+    const [count, setCount] = useState(0);
     const { ref, inView } = useInView({
       triggerOnce: true,
-      threshold: 0.5
-    })
+      threshold: 0.5,
+    });
+    useEffect(() => {
+      setIsLoaded(true);
+    }, []);
 
     useEffect(() => {
       if (inView) {
-        let start = 0
-        const numericValue = parseFloat(value.replace(/[^\d.-]/g, ''))
-        const incrementTime = (duration * 1000) / numericValue
+        let start = 0;
+        const numericValue = parseFloat(value.replace(/[^\d.-]/g, ""));
+        const incrementTime = (duration * 1000) / numericValue;
 
         const timer = setInterval(() => {
-          start += 1
-          setCount(start)
-          if (start >= numericValue) clearInterval(timer)
-        }, incrementTime)
+          start += 1;
+          setCount(start);
+          if (start >= numericValue) clearInterval(timer);
+        }, incrementTime);
 
-        return () => clearInterval(timer)
+        return () => clearInterval(timer);
       }
-    }, [inView, value, duration])
+    }, [inView, value, duration]);
 
     return (
       <div ref={ref}>
         <div className="text-3xl font-bold text-red-600 mb-2">
-          {count}{suffix}
+          {count}
+          {suffix}
         </div>
       </div>
-    )
-  }
+    );
+  };
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
-      {/* Hero Section */}
+      {/* Desktop Hero Section */}
       <motion.section
-        className="relative w-full h-screen flex items-center justify-start overflow-hidden"
+        className="hidden md:flex relative w-full h-screen items-center justify-start overflow-hidden"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
@@ -93,7 +148,7 @@ export default function PredictiveFocusPage() {
         <motion.div
           initial={{ scale: 1.1 }}
           animate={{ scale: 1 }}
-          transition={{ duration: 1.5, ease: 'easeOut' }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
           className="w-full h-full"
         >
           <img
@@ -121,11 +176,52 @@ export default function PredictiveFocusPage() {
               transition={{ delay: 0.3, duration: 0.8 }}
               className="text-base md:text-lg text-gray-100 max-w-3xl leading-snug"
             >
-              Next-generation AI-powered focusing technology that predicts focus requirements before
-              they are needed, ensuring crystal-clear capture with unprecedented accuracy.
+              Next-generation AI-powered focusing technology that predicts focus
+              requirements before they are needed, ensuring crystal-clear
+              capture with unprecedented accuracy.
             </motion.p>
           </div>
         </div>
+      </motion.section>
+
+      {/* Mobile Hero Section */}
+      <motion.section
+        className="md:hidden relative w-full h-96 flex items-center justify-center"
+        initial="hidden"
+        animate={isLoaded ? "visible" : "hidden"}
+        variants={
+          shouldReduceMotion ? reducedMotionVariants : containerVariants
+        }
+      >
+        <motion.div
+          variants={shouldReduceMotion ? reducedMotionVariants : imageVariants}
+          className="w-full h-full"
+        >
+          <Image
+            src={mobileBannerData.image}
+            alt={mobileBannerData.title}
+            fill
+            className="object-cover"
+            onLoad={() => setIsLoaded(true)}
+          />
+        </motion.div>
+        <div className="absolute inset-0 bg-black/60"></div>
+        <motion.div
+          variants={shouldReduceMotion ? reducedMotionVariants : textVariants}
+          className="absolute inset-0 flex items-center justify-center text-center px-6"
+        >
+          <div className="space-y-4">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
+              <span className="block">{mobileBannerData.title}</span>
+              <span className="block text-red-500">
+                {mobileBannerData.subtitle}
+              </span>
+            </h1>
+            <p className="text-sm text-gray-100 leading-snug max-w-md mx-auto">
+              {mobileBannerData.description}
+            </p>
+          </div>
+        </motion.div>
       </motion.section>
 
       {/* Video Section */}
@@ -150,11 +246,15 @@ export default function PredictiveFocusPage() {
                 PFA <span className="text-red-500">Technology Demo</span>
               </h2>
               <p className="text-xl text-gray-600 mx-auto mb-12">
-                Experience the power of predictive focus with intelligent AI algorithms
+                Experience the power of predictive focus with intelligent AI
+                algorithms
               </p>
 
               {/* Video Container */}
-              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+              <div
+                className="relative w-full"
+                style={{ paddingBottom: "56.25%" }}
+              >
                 <video
                   className="absolute inset-0 w-full h-full rounded-2xl"
                   controls
@@ -174,19 +274,19 @@ export default function PredictiveFocusPage() {
               >
                 {[
                   {
-                    title: 'AI-Powered Prediction',
+                    title: "AI-Powered Prediction",
                     description:
-                      'Advanced algorithms that predict focus requirements before they are needed for seamless operation',
+                      "Advanced algorithms that predict focus requirements before they are needed for seamless operation",
                   },
                   {
-                    title: 'Real-time Processing',
+                    title: "Real-time Processing",
                     description:
-                      'Lightning-fast focus adjustment with 0.1s response time for moving subjects and dynamic scenes',
+                      "Lightning-fast focus adjustment with 0.1s response time for moving subjects and dynamic scenes",
                   },
                   {
-                    title: 'Precision Accuracy',
+                    title: "Precision Accuracy",
                     description:
-                      'Crystal-clear focus with 99.9% accuracy rate across all lighting conditions and scenarios',
+                      "Crystal-clear focus with 99.9% accuracy rate across all lighting conditions and scenarios",
                   },
                 ].map((item, index) => (
                   <motion.div
@@ -226,7 +326,8 @@ export default function PredictiveFocusPage() {
               Key <span className="text-red-500">Features</span>
             </h2>
             <p className="text-lg sm:text-xl text-gray-600 mb-4 px-4">
-              Advanced capabilities that deliver precision focusing and intelligent automation
+              Advanced capabilities that deliver precision focusing and
+              intelligent automation
             </p>
           </motion.div>
 
@@ -363,11 +464,14 @@ export default function PredictiveFocusPage() {
                   <div className="bg-emerald-50 p-3 rounded-full mr-4">
                     <Crosshair className="text-red-600" size={24} />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900">Predictive Mode</h3>
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    Predictive Mode
+                  </h3>
                 </div>
                 <p className="text-gray-600 leading-relaxed">
-                  AI-powered predictive focusing that anticipates focus requirements before they
-                  occur, ensuring sharp images with zero lag and maximum accuracy.
+                  AI-powered predictive focusing that anticipates focus
+                  requirements before they occur, ensuring sharp images with
+                  zero lag and maximum accuracy.
                 </p>
               </motion.div>
 
@@ -392,11 +496,14 @@ export default function PredictiveFocusPage() {
                   <div className="bg-blue-50 p-3 rounded-full mr-4">
                     <Eye className="text-blue-600" size={24} />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900">Adaptive Mode</h3>
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    Adaptive Mode
+                  </h3>
                 </div>
                 <p className="text-gray-600 leading-relaxed">
-                  Intelligent adaptive focusing that learns from scene conditions and automatically
-                  adjusts focus parameters for optimal performance in changing environments.
+                  Intelligent adaptive focusing that learns from scene
+                  conditions and automatically adjusts focus parameters for
+                  optimal performance in changing environments.
                 </p>
               </motion.div>
             </div>
@@ -426,7 +533,8 @@ export default function PredictiveFocusPage() {
                 Advanced <span className="text-gray-700">Capabilities</span>
               </h2>
               <p className="text-xl text-gray-600">
-                Cutting-edge features for professional imaging and surveillance applications
+                Cutting-edge features for professional imaging and surveillance
+                applications
               </p>
             </motion.div>
 
@@ -434,25 +542,22 @@ export default function PredictiveFocusPage() {
             <div className="grid md:grid-cols-3 gap-8">
               {[
                 {
-                  title: 'Forensic Analysis',
+                  title: "Forensic Analysis",
                   description:
-                    'Crystal-clear evidence capture with zero focus drift during critical investigations',
-                  image:
-                    '/predictive/23.jpg',
+                    "Crystal-clear evidence capture with zero focus drift during critical investigations",
+                  image: "/predictive/23.jpg",
                 },
                 {
-                  title: 'Security Monitoring',
+                  title: "Security Monitoring",
                   description:
-                    'Continuous sharp surveillance with automatic focus adjustment for moving subjects',
-                  image:
-                    '/predictive/24.jpg',
+                    "Continuous sharp surveillance with automatic focus adjustment for moving subjects",
+                  image: "/predictive/24.jpg",
                 },
                 {
-                  title: 'Traffic Surveillance',
+                  title: "Traffic Surveillance",
                   description:
-                    'Perfect license plate capture and vehicle identification at all distances',
-                  image:
-                    '/predictive/25.jpg',
+                    "Perfect license plate capture and vehicle identification at all distances",
+                  image: "/predictive/25.jpg",
                 },
               ].map((app, index) => (
                 <motion.div
@@ -464,10 +569,16 @@ export default function PredictiveFocusPage() {
                   className="bg-white  shadow-lg hover:shadow-[0_4px_12px_rgba(255,0,0,0.5)] transition-all duration-300 overflow-hidden  transition-all duration-300"
                 >
                   <div className="h-48 overflow-hidden">
-                    <img src={app.image} alt={app.title} className="w-full h-full object-cover" />
+                    <img
+                      src={app.image}
+                      alt={app.title}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-3">{app.title}</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-3">
+                      {app.title}
+                    </h3>
                     <p className="text-gray-600 mb-4">{app.description}</p>
                   </div>
                 </motion.div>
@@ -476,7 +587,6 @@ export default function PredictiveFocusPage() {
           </div>
         </div>
       </motion.section>
-
     </div>
-  )
+  );
 }

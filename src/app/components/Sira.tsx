@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion, Variants } from 'framer-motion';
 import { Shield, Wrench, TrendingUp, Award, ArrowRight, CheckCircle, Users, Building, FileCheck, Clock } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -13,6 +13,8 @@ const SiraPage = () => {
   const [displayedText2, setDisplayedText2] = useState('');
   const [currentParagraph, setCurrentParagraph] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
 
   const paragraph1 = "The Security Industry Regulatory Agency (SIRA) is a Dubai-based government authority established in 2016 by a decree issued by His Highness Sheikh Mohammed Bin Rashid Al Maktoum, Vice President and Prime Minister of the UAE and Ruler of Dubai. SIRA plays a crucial role in maintaining and enhancing Dubai's security infrastructure by regulating and supervising all security-related activities across the emirate. Its primary objective is to ensure the highest standards of safety and protection through the licensing, monitoring, and development of security companies, professionals, and systems.";
   
@@ -54,6 +56,10 @@ const SiraPage = () => {
       return () => clearInterval(timer);
     }
   }, [currentParagraph]);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
 
   // Animation variants with proper TypeScript types
   const fadeInUp = {
@@ -115,10 +121,57 @@ const SiraPage = () => {
     }
   };
 
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
+  const textVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  const imageVariants: Variants = {
+    hidden: { opacity: 0, scale: 1.1 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.8,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  const reducedMotionVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+  };
+
+  const mobileBannerData = {
+    image: "/mobile/Seira.jpg",
+    title: "SIRA Certified",
+    subtitle: "Dubai Trusted Standard",
+    description: "Dubai trusted standard for professional security systems installation and maintenance. Ensure compliance and maximum protection with SIRA-approved solutions.",
+  };
+
   return (
     <div>
-      {/* New Hero Section */}
-      <section className="relative w-full h-screen flex items-center justify-start overflow-hidden">
+      {/* Desktop Hero Section */}
+      <section className="hidden md:block relative w-full h-screen flex items-center justify-start overflow-hidden">
         <Image
           src={Sira.src}
           alt="SIRA Hero"
@@ -136,7 +189,6 @@ const SiraPage = () => {
               className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight"
             >
               <span className="block text-white">SIRA <span className='text-red-600'>Certified</span></span>
-           
             </motion.h1>
             <motion.p
               initial={{ opacity: 0 }}
@@ -157,6 +209,52 @@ const SiraPage = () => {
             </motion.div>
           </div>
         </div>
+      </section>
+
+      {/* Mobile Hero Section */}
+      <section className="md:hidden relative w-full h-96 flex items-center justify-center overflow-hidden">
+        <motion.div
+          variants={shouldReduceMotion ? reducedMotionVariants : imageVariants}
+          initial="hidden"
+          animate={isLoaded ? "visible" : "hidden"}
+          className="absolute inset-0"
+        >
+          <Image
+            src={mobileBannerData.image}
+            alt="SIRA Hero Mobile"
+            fill
+            className="object-cover w-full h-full"
+            priority
+            quality={100}
+            onLoad={() => setIsLoaded(true)}
+          />
+        </motion.div>
+        <div className="absolute inset-0 bg-black/60"></div>
+        <motion.div
+          variants={shouldReduceMotion ? reducedMotionVariants : containerVariants}
+          initial="hidden"
+          animate={isLoaded ? "visible" : "hidden"}
+          className="relative z-10 text-center px-4 space-y-4"
+        >
+          <motion.h1
+            variants={shouldReduceMotion ? reducedMotionVariants : textVariants}
+            className="text-2xl sm:text-3xl font-bold text-white leading-tight"
+          >
+            <span className="block text-white">{mobileBannerData.title.split(' ')[0]} <span className='text-red-600'>{mobileBannerData.title.split(' ')[1]}</span></span>
+          </motion.h1>
+          <motion.p
+            variants={shouldReduceMotion ? reducedMotionVariants : textVariants}
+            className="text-sm sm:text-base text-gray-100 leading-snug"
+          >
+            {mobileBannerData.subtitle}
+          </motion.p>
+          <motion.p
+            variants={shouldReduceMotion ? reducedMotionVariants : textVariants}
+            className="text-sm sm:text-base text-gray-100 leading-snug"
+          >
+            {mobileBannerData.description}
+          </motion.p>
+        </motion.div>
       </section>
 
       {/* Simple Section with Left Content and Right Image */}
@@ -207,7 +305,7 @@ const SiraPage = () => {
               whileInView="visible"
               viewport={{ once: true, amount: 0.3 }}
               variants={fadeInRight}
-              className="relative order-1 lg:order-2 mb-8 lg:mb-0"
+              className="relative order-1 lg:order-2  lg:mb-0"
             >
               <div className="relative rounded-xl sm:rounded-3xl overflow-hidden shadow-2xl">
                 <Image
@@ -226,9 +324,9 @@ const SiraPage = () => {
       {/* What is SIRA Section - Enhanced without image */}
       <section className="py-12 sm:py-16 lg:py-24 bg-gradient-to-br from-slate-900 via-red-900 to-slate-900 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-10 left-10 w-64 h-64 bg-red-500 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-10 right-10 w-80 h-80 bg-slate-500 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-red-700 rounded-full blur-3xl"></div>
+          <div className="absolute top-16 left-16 w-48 h-48 bg-red-500 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-16 right-16 w-56 h-56 bg-slate-500 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-red-700 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
         </div>
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">

@@ -3,8 +3,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useInView } from 'react-intersection-observer'
 import { Shield, Cpu, Eye, Database, Settings } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-
+import { motion, AnimatePresence, useReducedMotion, Variants } from 'framer-motion'
 function FeatureCard({
   icon: Icon,
   iconBg,
@@ -72,11 +71,54 @@ export default function WizMindPage() {
   const [activeTab, setActiveTab] = useState('overview')
   const overviewRef = useRef<HTMLDivElement>(null)
   const featuresRef = useRef<HTMLDivElement>(null)
+  const [isLoaded, setIsLoaded] = useState(false)
 
   const { ref: benefitsRef, inView: benefitsInView } = useInView({
     triggerOnce: true,
     threshold: 0.1,
   })
+
+  const shouldReduceMotion = useReducedMotion()
+
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.1,
+      },
+    },
+  }
+
+  const textVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6 },
+    },
+  }
+
+  const imageVariants: Variants = {
+    hidden: { scale: 1.1 },
+    visible: {
+      scale: 1,
+      transition: { duration: 1.5, ease: 'easeOut' },
+    },
+  }
+
+  const reducedMotionVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.5 } },
+  }
+
+  const mobileBannerData = {
+    image: "/mobile/tech/wizmind.jpg",
+    title: "WizMind",
+    subtitle: "Technology",
+    description: "Next-generation AI surveillance technology powered by deep learning algorithms, delivering unprecedented intelligence and accuracy in video analytics and security monitoring.",
+  }
 
   const scrollToSection = (sectionId: string) => {
     setActiveTab(sectionId)
@@ -138,11 +180,15 @@ export default function WizMindPage() {
     )
   }
 
+  useEffect(() => {
+    setIsLoaded(true);
+  }, [])
+
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
-      {/* Hero Section */}
+      {/* Desktop Hero Section */}
       <motion.section
-        className="relative w-full h-screen flex items-center justify-start"
+        className="hidden md:flex relative w-full h-screen items-center justify-start"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
@@ -183,6 +229,42 @@ export default function WizMindPage() {
             </motion.p>
           </div>
         </div>
+      </motion.section>
+
+      {/* Mobile Hero Section */}
+      <motion.section
+        className="md:hidden relative w-full h-96 flex items-center justify-center"
+        initial="hidden"
+        animate={isLoaded ? "visible" : "hidden"}
+        variants={shouldReduceMotion ? reducedMotionVariants : containerVariants}
+      >
+        <motion.div
+          variants={shouldReduceMotion ? reducedMotionVariants : imageVariants}
+          className="w-full h-full"
+        >
+          <Image
+            src={mobileBannerData.image}
+            alt={mobileBannerData.title}
+            fill
+            className="object-cover"
+            onLoad={() => setIsLoaded(true)}
+          />
+        </motion.div>
+        <div className="absolute inset-0 bg-black/60"></div>
+        <motion.div
+          variants={shouldReduceMotion ? reducedMotionVariants : textVariants}
+          className="absolute inset-0 flex items-center justify-center text-center px-6"
+        >
+          <div className="space-y-4">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
+              <span className="block">{mobileBannerData.title}</span>
+              <span className="block text-red-500">{mobileBannerData.subtitle}</span>
+            </h1>
+            <p className="text-sm text-gray-100 leading-snug max-w-md mx-auto">
+              {mobileBannerData.description}
+            </p>
+          </div>
+        </motion.div>
       </motion.section>
 
       <motion.section
@@ -331,25 +413,7 @@ export default function WizMindPage() {
                   </motion.div>
                 </div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.4 }}
-                  className="grid md:grid-cols-3 gap-6"
-                >
-                  <div className="bg-white p-6 rounded-lg shadow-sm text-center">
-                    <Counter value={2} unit="°C" />
-                    <p className="text-gray-600">Temperature Accuracy</p>
-                  </div>
-                  <div className="bg-white p-6 rounded-lg shadow-sm text-center">
-                    <Counter value={5} unit="km" />
-                    <p className="text-gray-600">Detection Range</p>
-                  </div>
-                  <div className="bg-white p-6 rounded-lg shadow-sm text-center">
-                    <Counter value={24} unit="/7" />
-                    <p className="text-gray-600">Continuous Operation</p>
-                  </div>
-                </motion.div>
+               
               </div>
             </div>
           </section>

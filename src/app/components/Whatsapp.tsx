@@ -153,8 +153,8 @@ const Whatsapp = () => {
           onClick={toggleMenu}
           className={`relative flex items-center justify-center w-12 h-12 sm:w-[52px] sm:h-[52px] md:w-14 md:h-14 rounded-full shadow-lg transition-all duration-500 hover:scale-105 ${
             isOpen 
-              ? 'bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white' 
-              : 'bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white'
+              ? 'bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white' 
+              : 'bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white animate-bounce'
           }`}
           title={isOpen ? 'Close Menu' : 'Contact Support'}
         >

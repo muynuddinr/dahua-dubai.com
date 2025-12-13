@@ -2,10 +2,11 @@
 
 import React from 'react'
 import Image from 'next/image'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion, Variants } from 'framer-motion'
 import { Target, Zap, Bot, Shield, Settings, Eye } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useInView } from 'react-intersection-observer'
+
 function FeatureCard({
   icon: Icon,
   iconBg,
@@ -21,7 +22,7 @@ function FeatureCard({
 }) {
   return (
     <motion.div
-
+      whileHover={{ y: -10, scale: 1.05 }}
       className="bg-white rounded-xl p-8 flex flex-col items-center text-center hover:shadow-xl transition-all duration-300"
     >
       <div className={`${iconBg} w-16 h-16 rounded-full flex items-center justify-center mb-6`}>
@@ -32,6 +33,7 @@ function FeatureCard({
     </motion.div>
   )
 }
+
 // First, add the Counter component at the top of your file after the imports
 const Counter = ({
   value,
@@ -74,6 +76,50 @@ const Counter = ({
 }
 
 export default function AutoTrackingPage() {
+  const [isLoaded, setIsLoaded] = useState(true)
+
+  const shouldReduceMotion = useReducedMotion();
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
+  const textVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6 },
+    },
+  };
+
+  const imageVariants: Variants = {
+    hidden: { scale: 1.1 },
+    visible: {
+      scale: 1,
+      transition: { duration: 1.5, ease: "easeOut" },
+    },
+  };
+
+  const reducedMotionVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.5 } },
+  };
+
+  const mobileBannerData = {
+    image: "/mobile/tech/auto-tracking.jpg",
+    title: "Auto Tracking",
+    subtitle: "3.0",
+    description:
+      "Intelligent automated tracking system that seamlessly follows moving targets with precision and reliability, powered by advanced AI algorithms.",
+  };
+
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -85,9 +131,9 @@ export default function AutoTrackingPage() {
 
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
-      {/* Hero Section */}
+      {/* Desktop Hero Section */}
       <motion.section
-        className="relative w-full h-screen flex items-center justify-start overflow-hidden"
+        className="hidden md:flex relative w-full h-screen items-center justify-start overflow-hidden"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
@@ -112,7 +158,7 @@ export default function AutoTrackingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-3xl md:text-5xl font-bold text-white leading-tight"
+              className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight"
             >
               <span className="block">Auto Tracking</span>
               <span className="block text-red-500">3.0</span>
@@ -128,6 +174,46 @@ export default function AutoTrackingPage() {
             </motion.p>
           </div>
         </div>
+      </motion.section>
+
+      {/* Mobile Hero Section */}
+      <motion.section
+        className="md:hidden relative w-full h-96 flex items-center justify-center overflow-hidden"
+        initial="hidden"
+        animate={isLoaded ? "visible" : "hidden"}
+        variants={
+          shouldReduceMotion ? reducedMotionVariants : containerVariants
+        }
+      >
+        <motion.div
+          variants={shouldReduceMotion ? reducedMotionVariants : imageVariants}
+          className="w-full h-full"
+        >
+          <Image
+            src={mobileBannerData.image}
+            alt={mobileBannerData.title}
+            fill
+            className="object-cover"
+            onLoad={() => setIsLoaded(true)}
+          />
+        </motion.div>
+        <div className="absolute inset-0 bg-black/40"></div>
+        <motion.div
+          variants={shouldReduceMotion ? reducedMotionVariants : textVariants}
+          className="absolute inset-0 flex items-center justify-center text-center px-6"
+        >
+          <div className="space-y-4">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
+              <span className="block">{mobileBannerData.title}</span>
+              <span className="block text-red-500">
+                {mobileBannerData.subtitle}
+              </span>
+            </h1>
+            <p className="text-sm sm:text-base text-gray-100 leading-snug max-w-md mx-auto">
+              {mobileBannerData.description}
+            </p>
+          </div>
+        </motion.div>
       </motion.section>
 
       {/* Video Section */}

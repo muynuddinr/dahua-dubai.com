@@ -20,7 +20,7 @@ export default function ConditionalLayout({
 
   return (
     <>
-      <Navbar logo={{ url: "/Logo.png", alt: "Logo" }} />
+      <Navbar logo={{ url: "/images/dahualogo-removebg-preview0.png", alt: "Logo" }} />
       <Whatsapp />
       {children}
       <Footer />

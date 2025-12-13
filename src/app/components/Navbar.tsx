@@ -1,66 +1,69 @@
-'use client'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useState, useRef, useEffect, useCallback } from 'react'
-import Image from 'next/image'
-import axios from 'axios'
+"use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState, useRef, useEffect, useCallback } from "react";
+import Image from "next/image";
+import axios from "axios";
 
 interface HeaderProps {
   logo: {
-    url: string
-    alt?: string
-  }
-  email?: string
-  telephone?: string
-  location?: string
+    url: string;
+    alt?: string;
+  };
+  email?: string;
+  telephone?: string;
+  location?: string;
 }
 
 interface NavbarCategory {
-  _id: string
-  name: string
-  slug: string
-  href: string
-  order: number
-  isActive: boolean
+  _id: string;
+  name: string;
+  slug: string;
+  href: string;
+  order: number;
+  isActive: boolean;
 }
 
 interface Category {
-  _id: string
-  name: string
-  slug: string
-  description?: string
-  navbarCategoryId: {
-    _id: string
-    name: string
-  } | string
-  isActive: boolean
-  order: number
+  _id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  navbarCategoryId:
+    | {
+        _id: string;
+        name: string;
+      }
+    | string;
+  isActive: boolean;
+  order: number;
 }
 
 interface Product {
-  _id: string
-  name: string
-  slug: string
+  _id: string;
+  name: string;
+  slug: string;
   categoryId: {
-    _id: string
-    name: string
-    slug: string
-  }
+    _id: string;
+    name: string;
+    slug: string;
+  };
   subcategoryId: {
-    _id: string
-    name: string
-    slug: string
-  }
+    _id: string;
+    name: string;
+    slug: string;
+  };
   images: {
-    url: string
-    publicId: string
-  }[]
-  description?: string
+    url: string;
+    publicId: string;
+  }[];
+  description?: string;
 }
 
-interface ReloadLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
-  href: string
-  children: React.ReactNode
+interface ReloadLinkProps
+  extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  href: string;
+  children: React.ReactNode;
 }
 
 const ReloadLink = ({ href, children, ...props }: ReloadLinkProps) => {
@@ -68,292 +71,325 @@ const ReloadLink = ({ href, children, ...props }: ReloadLinkProps) => {
     <a
       href={href}
       onClick={() => {
-        window.location.href = href
+        window.location.href = href;
       }}
       {...props}
     >
       {children}
     </a>
-  )
-}
+  );
+};
 
 const Navbar = ({
   logo,
-  email = '  sales@dahua-dubai.com',
-  telephone = '+971 55 2929644',
-  location = 'Al Barsha, Dubai, UAE',
+  email = "  sales@dahua-dubai.com",
+  telephone = "+971 55 2929644",
+  location = "Al Barsha, Dubai, UAE",
 }: HeaderProps) => {
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
-  const [mobileSubMenu, setMobileSubMenu] = useState<null | string>(null)
-  const [navCategories, setNavCategories] = useState<NavbarCategory[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<Product[]>([])
-  const [searchLoading, setSearchLoading] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [mobileSubMenu, setMobileSubMenu] = useState<null | string>(null);
+  const [navCategories, setNavCategories] = useState<NavbarCategory[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
-  const pathname = usePathname()
-  const navRef = useRef<HTMLDivElement>(null)
-  const mobileMenuRef = useRef<HTMLDivElement>(null)
-  const searchRef = useRef<HTMLDivElement>(null)
-  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pathname = usePathname();
+  const navRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const mapsLink = `https://www.google.com/maps/place/25th+St+-+Deira+-+Dubai+-+United+Arab+Emirates/@25.279038,55.324346,16z/data=!4m6!3m5!1s0x3e5f5cb74997acd3:0x497aa605b636b17e!8m2!3d25.2790379!4d55.3243465!16s%2Fg%2F1tqnk2cw?hl=en&entry=ttu&g_ep=EgoyMDI5MTExNy4wIKXMDSoASAFQAw%3D%3D`
+  const mapsLink = `https://www.google.com/maps/place/25th+St+-+Deira+-+Dubai+-+United+Arab+Emirates/@25.279038,55.324346,16z/data=!4m6!3m5!1s0x3e5f5cb74997acd3:0x497aa605b636b17e!8m2!3d25.2790379!4d55.3243465!16s%2Fg%2F1tqnk2cw?hl=en&entry=ttu&g_ep=EgoyMDI5MTExNy4wIKXMDSoASAFQAw%3D%3D`;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const navbarResponse = await axios.get('/api/navbar-category')
+        const navbarResponse = await axios.get("/api/navbar-category");
         if (navbarResponse.data.success) {
           const activeNavCategories = navbarResponse.data.data
             .filter((cat: NavbarCategory) => cat.isActive)
-            .sort((a: NavbarCategory, b: NavbarCategory) => a.order - b.order)
-          setNavCategories(activeNavCategories)
+            .sort((a: NavbarCategory, b: NavbarCategory) => a.order - b.order);
+          setNavCategories(activeNavCategories);
         }
 
-        const categoryResponse = await axios.get('/api/category')
+        const categoryResponse = await axios.get("/api/category");
         if (categoryResponse.data.success) {
           const activeCategories = categoryResponse.data.data
             .filter((cat: Category) => cat.isActive)
-            .sort((a: Category, b: Category) => a.order - b.order)
-          setCategories(activeCategories)
+            .sort((a: Category, b: Category) => a.order - b.order);
+          setCategories(activeCategories);
         }
       } catch (error) {
-        console.error('Error fetching navigation data:', error)
-        setNavCategories([])
-        setCategories([])
+        console.error("Error fetching navigation data:", error);
+        setNavCategories([]);
+        setCategories([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   // Search functionality
   const handleSearch = async (query: string) => {
-    setSearchQuery(query)
+    setSearchQuery(query);
 
     if (query.trim().length < 2) {
-      setSearchResults([])
-      return
+      setSearchResults([]);
+      return;
     }
 
-    setSearchLoading(true)
+    setSearchLoading(true);
     try {
-      const response = await axios.get('/api/product')
+      const response = await axios.get("/api/product");
       if (response.data.success) {
-        const filtered = response.data.data.filter((product: Product) =>
-          product.name.toLowerCase().includes(query.toLowerCase()) ||
-          product.description?.toLowerCase().includes(query.toLowerCase())
-        )
-        setSearchResults(filtered.slice(0, 8))
+        const filtered = response.data.data.filter(
+          (product: Product) =>
+            product.name.toLowerCase().includes(query.toLowerCase()) ||
+            product.description?.toLowerCase().includes(query.toLowerCase())
+        );
+        setSearchResults(filtered.slice(0, 8));
       }
     } catch (error) {
-      console.error('Error searching products:', error)
-      setSearchResults([])
+      console.error("Error searching products:", error);
+      setSearchResults([]);
     } finally {
-      setSearchLoading(false)
+      setSearchLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node
-      
+      const target = e.target as Node;
+
       // Check if click is on search button
-      const isSearchButton = (e.target as HTMLElement).closest('button[aria-label*="search" i]')
-      
+      const isSearchButton = (e.target as HTMLElement).closest(
+        'button[aria-label*="search" i]'
+      );
+
       // Only close search if clicking outside AND not on the search button
-      if (searchRef.current && !searchRef.current.contains(target) && !isSearchButton) {
-        setSearchOpen(false)
-        setSearchQuery('')
-        setSearchResults([])
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(target) &&
+        !isSearchButton
+      ) {
+        setSearchOpen(false);
+        setSearchQuery("");
+        setSearchResults([]);
       }
-    }
+    };
 
     // Only add listener if search is open
     if (searchOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [searchOpen])
+  }, [searchOpen]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node
-      
+      const target = e.target as Node;
+
       if (navRef.current && !navRef.current.contains(target)) {
-        setActiveDropdown(null)
+        setActiveDropdown(null);
       }
-    }
+    };
 
     if (activeDropdown) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [activeDropdown])
+  }, [activeDropdown]);
 
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? 'hidden' : ''
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => {
-      document.body.style.overflow = ''
-    }
-  }, [mobileOpen])
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
 
   const isPathActive = (currentPath: string, targetPath: string) => {
-    if (targetPath === '/') {
-      return currentPath === targetPath
+    if (targetPath === "/") {
+      return currentPath === targetPath;
     }
 
-    if (targetPath === '/products' || targetPath === '/product') {
-      return currentPath.startsWith('/product')
+    if (targetPath === "/products" || targetPath === "/product") {
+      return currentPath.startsWith("/product");
     }
 
-    return currentPath.startsWith(targetPath)
-  }
+    return currentPath.startsWith(targetPath);
+  };
 
   const navLinks = [
-    { href: '/', label: 'Home' },
+    { href: "/", label: "Home" },
     {
-      href: '/technologies',
-      label: 'Technologies',
+      href: "/technologies",
+      label: "Technologies",
       submenu: [
-        { href: '/technologies/wizsense', label: 'WizSense', desc: 'AI-powered video analytics' },
-        { href: '/technologies/wizmind', label: 'WizMind', desc: 'Intelligent monitoring system' },
         {
-          href: '/technologies/full-color',
-          label: 'Full-color',
-          desc: '24/7 colorful surveillance',
+          href: "/technologies/wizsense",
+          label: "WizSense",
+          desc: "AI-powered video analytics",
         },
         {
-          href: '/technologies/auto-tracking',
-          label: 'Auto Tracking 3.0',
-          desc: 'Smart object tracking',
+          href: "/technologies/wizmind",
+          label: "WizMind",
+          desc: "Intelligent monitoring system",
         },
         {
-          href: '/technologies/hdcvi-ten',
-          label: 'HDCVI TEN Technology',
-          desc: 'High-definition transmission',
+          href: "/technologies/full-color",
+          label: "Full-color",
+          desc: "24/7 colorful surveillance",
         },
         {
-          href: '/technologies/predictive-focus',
-          label: 'Predictive Focus Algorithm',
-          desc: 'Advanced focus algorithm',
+          href: "/technologies/auto-tracking",
+          label: "Auto Tracking 3.0",
+          desc: "Smart object tracking",
+        },
+        {
+          href: "/technologies/hdcvi-ten",
+          label: "HDCVI TEN Technology",
+          desc: "High-definition transmission",
+        },
+        {
+          href: "/technologies/predictive-focus",
+          label: "Predictive Focus Algorithm",
+          desc: "Advanced focus algorithm",
         },
       ],
     },
     {
-      href: '/solutions',
-      label: 'Solutions',
+      href: "/solutions",
+      label: "Solutions",
       submenu: [
-        { href: '/solutions/building', label: 'Building', desc: 'Commercial security solutions' },
-        { href: '/solutions/banking', label: 'Banking', desc: 'Financial institution security' },
-        { href: '/solutions/retail', label: 'Retail', desc: 'Store monitoring & analytics' },
         {
-          href: '/solutions/transportation',
-          label: 'Transportation',
-          desc: 'Traffic & transit security',
+          href: "/solutions/building",
+          label: "Building",
+          desc: "Commercial security solutions",
         },
-        { href: '/solutions/government', label: 'Government', desc: 'Public safety solutions' },
+        {
+          href: "/solutions/banking",
+          label: "Banking",
+          desc: "Financial institution security",
+        },
+        {
+          href: "/solutions/retail",
+          label: "Retail",
+          desc: "Store monitoring & analytics",
+        },
+        {
+          href: "/solutions/transportation",
+          label: "Transportation",
+          desc: "Traffic & transit security",
+        },
+        {
+          href: "/solutions/government",
+          label: "Government",
+          desc: "Public safety solutions",
+        },
       ],
     },
-    { href: '/sira', label: 'Sira' },
-    { href: '/about-us', label: 'About Us' },
-    { href: '/contact', label: 'Contact Us' },
-  ]
+    { href: "/sira", label: "Sira" },
+    { href: "/about-us", label: "About Us" },
+    { href: "/contact", label: "Contact Us" },
+  ];
 
-  const staticHrefs = navLinks.map(l => l.href)
+  const staticHrefs = navLinks.map((l) => l.href);
   const mergedNavLinks = [
     ...navLinks.slice(0, 1),
     ...navCategories
-      .filter(navCat => !staticHrefs.includes(navCat.href))
-      .map(navCat => {
-        const relatedCategories = categories.filter(cat => {
+      .filter((navCat) => !staticHrefs.includes(navCat.href))
+      .map((navCat) => {
+        const relatedCategories = categories.filter((cat) => {
           const navbarId =
-            typeof cat.navbarCategoryId === 'string'
+            typeof cat.navbarCategoryId === "string"
               ? cat.navbarCategoryId
-              : (cat.navbarCategoryId as any)._id
-          return navbarId === navCat._id
-        })
+              : (cat.navbarCategoryId as any)._id;
+          return navbarId === navCat._id;
+        });
 
         if (relatedCategories.length > 0) {
           return {
             href: navCat.href,
             label: navCat.name,
-            submenu: relatedCategories.map(cat => ({
+            submenu: relatedCategories.map((cat) => ({
               href: `/product/${cat.slug}`,
               label: cat.name,
               desc: cat.description || `View ${cat.name}`,
             })),
-          }
+          };
         }
 
         return {
           href: navCat.href,
           label: navCat.name,
-        }
+        };
       }),
     ...navLinks.slice(1),
-  ]
+  ];
 
   const uniqueNavLinks = mergedNavLinks.reduce((acc: any[], curr) => {
-    const exists = acc.find(item => item.href === curr.href)
+    const exists = acc.find((item) => item.href === curr.href);
     if (!exists) {
-      acc.push(curr)
+      acc.push(curr);
     }
-    return acc
-  }, [])
+    return acc;
+  }, []);
 
   const handleDropdownMouseEnter = (href: string) => {
     if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current)
-      closeTimeoutRef.current = null
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
     }
-    setActiveDropdown(href)
-  }
+    setActiveDropdown(href);
+  };
 
   const handleDropdownMouseLeave = () => {
-    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
+    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
     closeTimeoutRef.current = setTimeout(() => {
-      setActiveDropdown(null)
-      closeTimeoutRef.current = null
-    }, 500)
-  }
+      setActiveDropdown(null);
+      closeTimeoutRef.current = null;
+    }, 500);
+  };
 
   useEffect(() => {
     return () => {
       if (closeTimeoutRef.current) {
-        clearTimeout(closeTimeoutRef.current)
-        closeTimeoutRef.current = null
+        clearTimeout(closeTimeoutRef.current);
+        closeTimeoutRef.current = null;
       }
-    }
-  }, [])
+    };
+  }, []);
 
   const getViewAllLink = (href: string) => {
     switch (href) {
-      case '/technologies':
-        return '/technologies'
-      case '/solutions':
-        return '/solutions'
-      case '/products':
-      case '/product':
-        return '/products'
+      case "/technologies":
+        return "/technologies";
+      case "/solutions":
+        return "/solutions";
+      case "/products":
+      case "/product":
+        return "/products";
       default:
-        return href
+        return href;
     }
-  }
+  };
 
   const toggleSearch = useCallback(() => {
-    setSearchOpen(prev => !prev)
+    setSearchOpen((prev) => !prev);
     if (searchOpen) {
       // If closing, clear the search
-      setSearchQuery('')
-      setSearchResults([])
+      setSearchQuery("");
+      setSearchResults([]);
     }
-  }, [searchOpen])
+  }, [searchOpen]);
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-white text-black shadow-md z-50 border-b border-gray-200">
@@ -363,11 +399,11 @@ const Navbar = ({
           <div className="flex w-full lg:hidden items-center justify-between">
             <Link href="/" className="block">
               <Image
-                src={logo?.url || '/images/dahualogo-removebg-preview.png'}
-                alt={logo?.alt || 'Logo'}
-                width={90}
-                height={28}
-                className="h-8 object-contain"
+                src={logo?.url || "/images/dahualogo-removebg-preview.png"}
+                alt={logo?.alt || "Logo"}
+                width={150}
+                height={200}
+                className="h-12 object-contain"
               />
             </Link>
 
@@ -377,11 +413,11 @@ const Navbar = ({
                 onClick={toggleSearch}
                 className="flex items-center z-[100000] relative justify-center text-black hover:text-red-600 transition-all duration-300"
                 style={{
-                  backgroundColor: '#f8f9fa',
-                  padding: '6px',
-                  borderRadius: '50%',
-                  width: '36px',
-                  height: '36px',
+                  backgroundColor: "#f8f9fa",
+                  padding: "6px",
+                  borderRadius: "50%",
+                  width: "36px",
+                  height: "36px",
                 }}
                 aria-label={searchOpen ? "Close search" : "Search"}
               >
@@ -423,40 +459,48 @@ const Navbar = ({
               >
                 <div className="w-6 h-6 relative flex flex-col justify-center items-center">
                   <div
-                    className={`w-5 h-0.5 bg-red-600 rounded-full transition-all duration-300 ease-in-out absolute ${mobileOpen ? 'rotate-45 translate-y-0' : '-translate-y-1.5'
-                      }`}
+                    className={`w-5 h-0.5 bg-red-600 rounded-full transition-all duration-300 ease-in-out absolute ${
+                      mobileOpen
+                        ? "rotate-45 translate-y-0"
+                        : "-translate-y-1.5"
+                    }`}
                   />
                   <div
-                    className={`w-5 h-0.5 bg-red-600 rounded-full transition-all duration-300 ease-in-out absolute ${mobileOpen ? 'opacity-0' : 'opacity-100'
-                      }`}
+                    className={`w-5 h-0.5 bg-red-600 rounded-full transition-all duration-300 ease-in-out absolute ${
+                      mobileOpen ? "opacity-0" : "opacity-100"
+                    }`}
                   />
                   <div
-                    className={`w-5 h-0.5 bg-red-600 rounded-full transition-all duration-300 ease-in-out absolute ${mobileOpen ? '-rotate-45 translate-y-0' : 'translate-y-1.5'
-                      }`}
+                    className={`w-5 h-0.5 bg-red-600 rounded-full transition-all duration-300 ease-in-out absolute ${
+                      mobileOpen
+                        ? "-rotate-45 translate-y-0"
+                        : "translate-y-1.5"
+                    }`}
                   />
                 </div>
               </button>
             </div>
           </div>
 
-          {/* Desktop logo (lg and above) */}
-          <div className="hidden lg:flex items-center justify-start" style={{ width: '100px' }}>
+          <div
+            className="hidden lg:flex items-center justify-start"
+            style={{ width: "150px" }}
+          >
             <Link href="/" className="block">
               <Image
-                src={logo?.url || '/images/dahualogo-removebg-preview.png'}
-                alt={logo?.alt || 'Logo'}
-                width={1400}
-                height={40}
+                src={logo?.url || "/images/dahualogo-removebg-preview.png"}
+                alt={logo?.alt || "Logo"}
+                width={160}
+                height={60}
                 className="object-contain transition-all duration-300 hover:scale-105 w-full"
               />
             </Link>
           </div>
 
-          {/* Desktop navigation (lg and above) */}
           <nav
             ref={navRef}
             className="hidden lg:flex items-center gap-3"
-            style={{ flex: 1, justifyContent: 'center' }}
+            style={{ flex: 1, justifyContent: "center" }}
           >
             {loading ? (
               <div className="flex items-center gap-2 text-slate-400">
@@ -473,21 +517,28 @@ const Navbar = ({
                     >
                       <Link
                         href={item.href}
-                        className={`flex items-center gap-0.5 px-3 py-2 group transition-colors duration-300 text-sm ${isPathActive(pathname, item.href)
-                            ? 'text-red-600'
-                            : 'text-gray-800 hover:text-red-600'
-                          }`}
+                        className={`flex items-center gap-0.5 px-3 py-2 group transition-colors duration-300 text-sm ${
+                          isPathActive(pathname, item.href)
+                            ? "text-red-600"
+                            : "text-gray-800 hover:text-red-600"
+                        }`}
                       >
                         <span className="relative">
                           {item.label}
                           <span
-                            className={`absolute -bottom-1 left-0 h-0.5 bg-red-600 transition-all duration-300 ${isPathActive(pathname, item.href) ? 'w-full' : 'w-0 group-hover:w-full'
-                              }`}
+                            className={`absolute -bottom-1 left-0 h-0.5 bg-red-600 transition-all duration-300 ${
+                              isPathActive(pathname, item.href)
+                                ? "w-full"
+                                : "w-0 group-hover:w-full"
+                            }`}
                           ></span>
                         </span>
                         <svg
-                          className={`w-4 h-4 transition-transform duration-300 ${activeDropdown === item.href ? 'rotate-180' : 'rotate-0'
-                            }`}
+                          className={`w-4 h-4 transition-transform duration-300 ${
+                            activeDropdown === item.href
+                              ? "rotate-180"
+                              : "rotate-0"
+                          }`}
                           viewBox="0 0 20 20"
                           fill="currentColor"
                         >
@@ -503,10 +554,12 @@ const Navbar = ({
                         <div
                           className="fixed left-0 right-0 w-full bg-white shadow-lg py-4 z-10 mt-0 animate-fadeIn"
                           style={{
-                            top: '64px',
-                            borderTop: '2px solid #dc2626',
+                            top: "64px",
+                            borderTop: "2px solid #dc2626",
                           }}
-                          onMouseEnter={() => handleDropdownMouseEnter(item.href)}
+                          onMouseEnter={() =>
+                            handleDropdownMouseEnter(item.href)
+                          }
                           onMouseLeave={() => handleDropdownMouseLeave()}
                         >
                           <div className="container mx-auto px-4 py-2">
@@ -523,10 +576,11 @@ const Navbar = ({
                                         <ReloadLink
                                           key={subItem.href}
                                           href={subItem.href}
-                                          className={`block p-4 rounded-lg border transition-all duration-300 text-sm group hover:shadow-md ${isPathActive(pathname, subItem.href)
-                                              ? 'border-red-600 bg-red-50 text-red-600 shadow-sm'
-                                              : 'border-gray-100 bg-gray-50 hover:border-red-600 text-gray-800'
-                                            }`}
+                                          className={`block p-4 rounded-lg border transition-all duration-300 text-sm group hover:shadow-md ${
+                                            isPathActive(pathname, subItem.href)
+                                              ? "border-red-600 bg-red-50 text-red-600 shadow-sm"
+                                              : "border-gray-100 bg-gray-50 hover:border-red-600 text-gray-800"
+                                          }`}
                                         >
                                           <div className="font-semibold group-hover:text-red-600 transition-colors">
                                             {subItem.label}
@@ -561,35 +615,36 @@ const Navbar = ({
                                     </div>
                                   </div>
                                   <div className="hidden lg:flex w-80 flex-col items-center justify-center">
-                                    <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 flex items-center justify-center overflow-hidden shadow-inner">
-                                      <Image
+                                    <div className="w-full h-64 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 flex items-center justify-center overflow-hidden shadow-inner">
+                                      {" "}
+                                       <Image
                                         src={
-                                          item.href === '/technologies'
-                                            ? '/images/wiz.png'
-                                            : item.href === '/solutions'
-                                              ? '/images/wiz.png'
-                                              : '/images/aboutus.png'
+                                          item.href === "/technologies"
+                                            ? "/images/wiz.png"
+                                            : item.href === "/solutions"
+                                            ? "/images/solutions.png"
+                                            : "/images/aboutus.png"
                                         }
                                         alt={item.label}
-                                        width={320}
-                                        height={192}
+                                        width={400} // increased width (320 → 400)
+                                        height={240} // increased height (192 → 240)
                                         className="object-cover transition-transform duration-500 hover:scale-105"
                                       />
                                     </div>
                                     <div className="text-center p-4 bg-gradient-to-r from-red-50 to-red-100 rounded-xl border border-red-200 transition-all duration-300 hover:shadow-lg">
                                       <h4 className="font-bold text-lg mb-2 text-red-700">
-                                        {item.href === '/technologies'
-                                          ? 'Advanced Technology'
-                                          : item.href === '/solutions'
-                                            ? 'Industry Solutions'
-                                            : 'Expert Services'}
+                                        {item.href === "/technologies"
+                                          ? "Advanced Technology"
+                                          : item.href === "/solutions"
+                                          ? "Industry Solutions"
+                                          : "Expert Services"}
                                       </h4>
                                       <p className="text-sm text-red-600 leading-relaxed">
-                                        {item.href === '/technologies'
-                                          ? 'Cutting-edge surveillance technologies for modern security needs'
-                                          : item.href === '/solutions'
-                                            ? 'Comprehensive security solutions tailored for your industry'
-                                            : 'Professional services and support for your security systems'}
+                                        {item.href === "/technologies"
+                                          ? "Cutting-edge surveillance technologies for modern security needs"
+                                          : item.href === "/solutions"
+                                          ? "Comprehensive security solutions tailored for your industry"
+                                          : "Professional services and support for your security systems"}
                                       </p>
                                     </div>
                                   </div>
@@ -603,16 +658,20 @@ const Navbar = ({
                   ) : (
                     <Link
                       href={item.href}
-                      className={`px-3 py-2 group transition-colors duration-300 text-sm ${isPathActive(pathname, item.href)
-                          ? 'text-red-600'
-                          : 'text-gray-800 hover:text-red-600'
-                        }`}
+                      className={`px-3 py-2 group transition-colors duration-300 text-sm ${
+                        isPathActive(pathname, item.href)
+                          ? "text-red-600"
+                          : "text-gray-800 hover:text-red-600"
+                      }`}
                     >
                       <span className="relative">
                         {item.label}
                         <span
-                          className={`absolute -bottom-1 left-0 h-0.5 bg-red-600 transition-all duration-300 ${isPathActive(pathname, item.href) ? 'w-full' : 'w-0 group-hover:w-full'
-                            }`}
+                          className={`absolute -bottom-1 left-0 h-0.5 bg-red-600 transition-all duration-300 ${
+                            isPathActive(pathname, item.href)
+                              ? "w-full"
+                              : "w-0 group-hover:w-full"
+                          }`}
                         ></span>
                       </span>
                     </Link>
@@ -625,18 +684,18 @@ const Navbar = ({
           {/* Desktop contact icons and search */}
           <div
             className="hidden lg:flex items-center gap-2"
-            style={{ minWidth: 'auto', justifyContent: 'flex-end' }}
+            style={{ minWidth: "auto", justifyContent: "flex-end" }}
           >
             {/* Search Icon */}
             <button
               onClick={toggleSearch}
               className="flex items-center justify-center text-black hover:text-red-600 transition-all duration-300"
               style={{
-                backgroundColor: '#f8f9fa',
-                padding: '6px',
-                borderRadius: '50%',
-                width: '36px',
-                height: '36px',
+                backgroundColor: "#f8f9fa",
+                padding: "6px",
+                borderRadius: "50%",
+                width: "36px",
+                height: "36px",
               }}
               aria-label={searchOpen ? "Close search" : "Search"}
             >
@@ -677,11 +736,11 @@ const Navbar = ({
               rel="noopener noreferrer"
               className="flex items-center justify-center text-black hover:text-red-600 transition-all duration-300"
               style={{
-                backgroundColor: '#f8f9fa',
-                padding: '6px',
-                borderRadius: '50%',
-                width: '36px',
-                height: '36px',
+                backgroundColor: "#f8f9fa",
+                padding: "6px",
+                borderRadius: "50%",
+                width: "36px",
+                height: "36px",
               }}
               title={location}
             >
@@ -694,11 +753,11 @@ const Navbar = ({
               href={`mailto:${email}`}
               className="flex items-center justify-center text-black hover:text-red-600 transition-all duration-300"
               style={{
-                backgroundColor: '#f8f9fa',
-                padding: '6px',
-                borderRadius: '50%',
-                width: '36px',
-                height: '36px',
+                backgroundColor: "#f8f9fa",
+                padding: "6px",
+                borderRadius: "50%",
+                width: "36px",
+                height: "36px",
               }}
               title={email}
             >
@@ -721,11 +780,11 @@ const Navbar = ({
               href={`tel:${telephone}`}
               className="flex items-center justify-center text-black hover:text-red-600 transition-all duration-300"
               style={{
-                backgroundColor: '#f8f9fa',
-                padding: '6px',
-                borderRadius: '50%',
-                width: '36px',
-                height: '36px',
+                backgroundColor: "#f8f9fa",
+                padding: "6px",
+                borderRadius: "50%",
+                width: "36px",
+                height: "36px",
               }}
               title={telephone}
             >
@@ -761,11 +820,11 @@ const Navbar = ({
                 <div
                   className="flex items-center justify-center text-black"
                   style={{
-                    backgroundColor: '#f8f9fa',
-                    padding: '6px',
-                    borderRadius: '50%',
-                    width: '36px',
-                    height: '36px',
+                    backgroundColor: "#f8f9fa",
+                    padding: "6px",
+                    borderRadius: "50%",
+                    width: "36px",
+                    height: "36px",
                     flexShrink: 0,
                   }}
                 >
@@ -799,7 +858,7 @@ const Navbar = ({
                   ) : (
                     searchQuery && (
                       <button
-                        onClick={() => setSearchQuery('')}
+                        onClick={() => setSearchQuery("")}
                         className="p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
                         aria-label="Clear search"
                       >
@@ -821,9 +880,9 @@ const Navbar = ({
                   )}
                   <button
                     onClick={() => {
-                      setSearchOpen(false)
-                      setSearchQuery('')
-                      setSearchResults([])
+                      setSearchOpen(false);
+                      setSearchQuery("");
+                      setSearchResults([]);
                     }}
                     className="p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
                     aria-label="Close search"
@@ -850,7 +909,9 @@ const Navbar = ({
                 {searchQuery ? (
                   searchResults.length > 0 ? (
                     <div>
-                      <h3 className="text-sm font-medium text-gray-900 mb-3">Search Results</h3>
+                      <h3 className="text-sm font-medium text-gray-900 mb-3">
+                        Search Results
+                      </h3>
                       <div className="space-y-2 max-h-64 overflow-y-auto">
                         {searchResults.map((result) => (
                           <ReloadLink
@@ -858,9 +919,9 @@ const Navbar = ({
                             href={`/product/${result.categoryId.slug}/${result.subcategoryId.slug}/${result.slug}`}
                             className="group block p-3 rounded-lg hover:bg-gray-50 border border-gray-100"
                             onClick={() => {
-                              setSearchQuery('')
-                              setSearchOpen(false)
-                              setSearchResults([])
+                              setSearchQuery("");
+                              setSearchOpen(false);
+                              setSearchResults([]);
                             }}
                           >
                             <div className="font-medium text-gray-900 group-hover:text-red-600 text-sm">
@@ -880,7 +941,9 @@ const Navbar = ({
                   )
                 ) : (
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 mb-3">Popular Categories</h3>
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">
+                      Popular Categories
+                    </h3>
                     <ul className="grid grid-cols-2 gap-2">
                       {navCategories.slice(0, 6).map((category) => (
                         <li key={category._id}>
@@ -888,8 +951,8 @@ const Navbar = ({
                             href={category.href}
                             className="text-sm text-gray-600 hover:text-red-600 transition-colors p-2 block rounded hover:bg-gray-50"
                             onClick={() => {
-                              setSearchQuery('')
-                              setSearchOpen(false)
+                              setSearchQuery("");
+                              setSearchOpen(false);
                             }}
                           >
                             {category.name}
@@ -917,12 +980,7 @@ const Navbar = ({
               {/* Search Input */}
               <div className="col-span-1">
                 <div className="relative flex items-center gap-2">
-                  <div
-                    className="flex items-center justify-center text-black"
-                   
-                  >
-                    
-                  </div>
+                  <div className="flex items-center justify-center text-black"></div>
                   <input
                     type="text"
                     placeholder="Search products..."
@@ -939,7 +997,7 @@ const Navbar = ({
                     ) : (
                       searchQuery && (
                         <button
-                          onClick={() => setSearchQuery('')}
+                          onClick={() => setSearchQuery("")}
                           className="p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
                           aria-label="Clear search"
                         >
@@ -961,15 +1019,13 @@ const Navbar = ({
                     )}
                     <button
                       onClick={() => {
-                        setSearchOpen(false)
-                        setSearchQuery('')
-                        setSearchResults([])
+                        setSearchOpen(false);
+                        setSearchQuery("");
+                        setSearchResults([]);
                       }}
                       className="p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
                       aria-label="Close search"
-                    >
-                     
-                    </button>
+                    ></button>
                   </div>
                 </div>
               </div>
@@ -979,7 +1035,9 @@ const Navbar = ({
                 {searchQuery ? (
                   searchResults.length > 0 ? (
                     <div>
-                      <h3 className="text-sm font-medium ml-3 text-gray-900 mb-3">Search Results</h3>
+                      <h3 className="text-sm font-medium ml-3 text-gray-900 mb-3">
+                        Search Results
+                      </h3>
                       <div className="grid grid-cols-3 gap-4">
                         {searchResults.map((result) => (
                           <ReloadLink
@@ -987,9 +1045,9 @@ const Navbar = ({
                             href={`/product/${result.categoryId.slug}/${result.subcategoryId.slug}/${result.slug}`}
                             className="group p-3 rounded-lg hover:bg-gray-50"
                             onClick={() => {
-                              setSearchQuery('')
-                              setSearchOpen(false)
-                              setSearchResults([])
+                              setSearchQuery("");
+                              setSearchOpen(false);
+                              setSearchResults([]);
                             }}
                           >
                             <div className="font-medium ml-3 text-gray-900 group-hover:text-red-600">
@@ -1009,7 +1067,9 @@ const Navbar = ({
                   )
                 ) : (
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 mb-3">Popular Categories</h3>
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">
+                      Popular Categories
+                    </h3>
                     <ul className="grid grid-cols-3 gap-2">
                       {navCategories.slice(0, 9).map((category) => (
                         <li key={category._id}>
@@ -1017,8 +1077,8 @@ const Navbar = ({
                             href={category.href}
                             className="text-sm text-gray-600 hover:text-red-600 transition-colors"
                             onClick={() => {
-                              setSearchQuery('')
-                              setSearchOpen(false)
+                              setSearchQuery("");
+                              setSearchOpen(false);
                             }}
                           >
                             {category.name}
@@ -1037,27 +1097,29 @@ const Navbar = ({
       {/* Mobile Menu */}
       <div
         ref={mobileMenuRef}
-        className={`lg:hidden fixed inset-0 z-40 transition-all duration-300 ease-in-out ${mobileOpen ? 'translate-y-0' : '-translate-y-full'
-          }`}
+        className={`lg:hidden fixed inset-0 z-40 transition-all duration-300 ease-in-out ${
+          mobileOpen ? "translate-y-0" : "-translate-y-full"
+        }`}
         style={{
-          top: '64px',
-          height: 'calc(100vh - 64px)',
-          backgroundColor: 'transparent',
-          pointerEvents: mobileOpen ? 'auto' : 'none',
+          top: "64px",
+          height: "calc(100vh - 64px)",
+          backgroundColor: "transparent",
+          pointerEvents: mobileOpen ? "auto" : "none",
         }}
         onClick={(e) => {
           if (e.target === mobileMenuRef.current) {
-            setMobileOpen(false)
-            setMobileSubMenu(null)
+            setMobileOpen(false);
+            setMobileSubMenu(null);
           }
         }}
       >
         <div
-          className={`bg-white shadow-xl overflow-y-auto transition-all duration-300 ease-in-out ${mobileOpen ? 'translate-y-0' : '-translate-y-full'
-            }`}
+          className={`bg-white shadow-xl overflow-y-auto transition-all duration-300 ease-in-out ${
+            mobileOpen ? "translate-y-0" : "-translate-y-full"
+          }`}
           style={{
-            height: 'auto',
-            maxHeight: 'calc(100vh - 64px)',
+            height: "auto",
+            maxHeight: "calc(100vh - 64px)",
           }}
         >
           {!mobileSubMenu ? (
@@ -1070,23 +1132,34 @@ const Navbar = ({
                   </div>
                 ) : (
                   uniqueNavLinks.map((item) => (
-                    <div key={item.href} className="border-b border-gray-100 last:border-b-0">
+                    <div
+                      key={item.href}
+                      className="border-b border-gray-100 last:border-b-0"
+                    >
                       {item.submenu ? (
                         <button
-                          className={`w-full flex items-center justify-between py-5 px-3 text-base font-medium transition-colors duration-300 ${isPathActive(pathname, item.href)
-                              ? 'text-red-600 bg-red-50'
-                              : 'text-gray-800 hover:text-red-600 hover:bg-red-50'
-                            }`}
+                          className={`w-full flex items-center justify-between py-5 px-3 text-base font-medium transition-colors duration-300 ${
+                            isPathActive(pathname, item.href)
+                              ? "text-red-600 bg-red-50"
+                              : "text-gray-800 hover:text-red-600 hover:bg-red-50"
+                          }`}
                           onClick={() => setMobileSubMenu(item.href)}
                         >
                           <span
-                            className={`text-lg ${isPathActive(pathname, item.href) ? 'font-bold' : 'font-semibold'}`}
+                            className={`text-lg ${
+                              isPathActive(pathname, item.href)
+                                ? "font-bold"
+                                : "font-semibold"
+                            }`}
                           >
                             {item.label}
                           </span>
                           <svg
-                            className={`w-6 h-6 transition-colors duration-300 ${isPathActive(pathname, item.href) ? 'text-red-600' : 'text-gray-500'
-                              }`}
+                            className={`w-6 h-6 transition-colors duration-300 ${
+                              isPathActive(pathname, item.href)
+                                ? "text-red-600"
+                                : "text-gray-500"
+                            }`}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -1103,13 +1176,14 @@ const Navbar = ({
                         <Link
                           href={item.href}
                           onClick={() => {
-                            setMobileOpen(false)
-                            setMobileSubMenu(null)
+                            setMobileOpen(false);
+                            setMobileSubMenu(null);
                           }}
-                          className={`flex items-center py-5 px-3 text-base font-medium transition-colors duration-300 ${isPathActive(pathname, item.href)
-                              ? 'text-red-600 bg-red-50 font-bold'
-                              : 'text-gray-800 hover:text-red-600 hover:bg-red-50 font-semibold'
-                            }`}
+                          className={`flex items-center py-5 px-3 text-base font-medium transition-colors duration-300 ${
+                            isPathActive(pathname, item.href)
+                              ? "text-red-600 bg-red-50 font-bold"
+                              : "text-gray-800 hover:text-red-600 hover:bg-red-50 font-semibold"
+                          }`}
                         >
                           <span className="text-lg">{item.label}</span>
                           {isPathActive(pathname, item.href) && (
@@ -1159,7 +1233,7 @@ const Navbar = ({
                         strokeLinejoin="round"
                         strokeWidth="2"
                         d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
+                      />
                     </svg>
                     <div>
                       <div className="font-semibold">Email Us</div>
@@ -1214,7 +1288,10 @@ const Navbar = ({
                   <span className="font-semibold text-lg">Back</span>
                 </button>
                 <span className="ml-2 font-bold text-red-600 text-lg">
-                  {uniqueNavLinks.find((item) => item.href === mobileSubMenu)?.label}
+                  {
+                    uniqueNavLinks.find((item) => item.href === mobileSubMenu)
+                      ?.label
+                  }
                 </span>
               </div>
 
@@ -1222,7 +1299,11 @@ const Navbar = ({
                 <div className="p-4">
                   <div className="text-center mb-6">
                     <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                      {uniqueNavLinks.find((item) => item.href === mobileSubMenu)?.label}
+                      {
+                        uniqueNavLinks.find(
+                          (item) => item.href === mobileSubMenu
+                        )?.label
+                      }
                     </h2>
                     <p className="text-gray-600 text-sm">
                       Explore our comprehensive range of options
@@ -1237,17 +1318,21 @@ const Navbar = ({
                           key={subItem.href}
                           href={subItem.href}
                           onClick={() => {
-                            setMobileOpen(false)
-                            setMobileSubMenu(null)
+                            setMobileOpen(false);
+                            setMobileSubMenu(null);
                           }}
-                          className={`block p-4 rounded-xl transition-all duration-300 border-2 shadow-sm ${isPathActive(pathname, subItem.href)
-                              ? 'bg-red-50 text-red-600 border-red-600 shadow-md'
-                              : 'bg-white text-gray-900 hover:text-red-600 border-gray-200 hover:border-red-400 hover:shadow-md'
-                            }`}
+                          className={`block p-4 rounded-xl transition-all duration-300 border-2 shadow-sm ${
+                            isPathActive(pathname, subItem.href)
+                              ? "bg-red-50 text-red-600 border-red-600 shadow-md"
+                              : "bg-white text-gray-900 hover:text-red-600 border-gray-200 hover:border-red-400 hover:shadow-md"
+                          }`}
                         >
                           <div
-                            className={`font-semibold text-lg mb-2 ${isPathActive(pathname, subItem.href) ? 'font-bold' : ''
-                              }`}
+                            className={`font-semibold text-lg mb-2 ${
+                              isPathActive(pathname, subItem.href)
+                                ? "font-bold"
+                                : ""
+                            }`}
                           >
                             {subItem.label}
                             {isPathActive(pathname, subItem.href) && (
@@ -1257,10 +1342,11 @@ const Navbar = ({
                             )}
                           </div>
                           <div
-                            className={`text-sm leading-relaxed ${isPathActive(pathname, subItem.href)
-                                ? 'text-red-500'
-                                : 'text-gray-600'
-                              }`}
+                            className={`text-sm leading-relaxed ${
+                              isPathActive(pathname, subItem.href)
+                                ? "text-red-500"
+                                : "text-gray-600"
+                            }`}
                           >
                             {subItem.desc}
                           </div>
@@ -1269,14 +1355,21 @@ const Navbar = ({
 
                     <div className="flex justify-center mt-4">
                       <ReloadLink
-                        href={getViewAllLink(mobileSubMenu || '')}
+                        href={getViewAllLink(mobileSubMenu || "")}
                         onClick={() => {
-                          setMobileOpen(false)
-                          setMobileSubMenu(null)
+                          setMobileOpen(false);
+                          setMobileSubMenu(null);
                         }}
                         className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm font-medium hover:bg-red-600 hover:text-white transition-all duration-300 border border-gray-200 hover:border-red-600"
                       >
-                        <span>View All {uniqueNavLinks.find((item) => item.href === mobileSubMenu)?.label}</span>
+                        <span>
+                          View All{" "}
+                          {
+                            uniqueNavLinks.find(
+                              (item) => item.href === mobileSubMenu
+                            )?.label
+                          }
+                        </span>
                         <svg
                           className="w-3 h-3 ml-1 transition-transform duration-300 group-hover:translate-x-1"
                           fill="none"
@@ -1316,7 +1409,7 @@ const Navbar = ({
         }
       `}</style>
     </header>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

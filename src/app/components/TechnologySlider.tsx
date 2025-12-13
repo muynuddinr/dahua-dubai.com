@@ -1,59 +1,84 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-// Import images to avoid path issues
-import FullColorImg from './slider/Fullcolor.png';
-import WizSenseImg from './slider/Wizsense.png';
-import AutoTrackingImg from './slider/Autotracking.png';
-import PredictiveFocusImg from './slider/Predictivefocus.png';
-import WizMindImg from './slider/Wizmind.png';
-import HDCVITenImg from './slider/Hdcviten.png';
+// Import desktop images
+import FullColorImg from "./slider/Fullcolor.png";
+import WizSenseImg from "./slider/Wizsense.png";
+import AutoTrackingImg from "./slider/Autotracking.png";
+import PredictiveFocusImg from "./slider/Predictivefocus.png";
+import WizMindImg from "./slider/Wizmind.png";
+import HDCVITenImg from "./slider/Hdcviten.png";
 
 export default function TechnologySlider() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loadedImages, setLoadedImages] = useState<boolean[]>([]);
   const [imageErrors, setImageErrors] = useState<string[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
 
   const slides = [
     {
-      title: 'Full Color Technology',
-      description: "Dahua's full-color technology brings vivid imagery, capturing details with vibrant color reproduction for enhanced surveillance solutions.",
+      title: "Full Color Technology",
+      description:
+        "Dahua's full-color technology brings vivid imagery, capturing details with vibrant color reproduction for enhanced surveillance solutions.",
       image: FullColorImg,
-      link: '/technologies/full-color',
+      mobileImage: FullColorImg,
+      link: "/technologies/full-color",
     },
     {
-      title: 'WizSense Technology',
-      description: 'WizSense Technology revolutionizes AI by integrating advanced sensing capabilities for intelligent systems across various applications.',
+      title: "WizSense Technology",
+      description:
+        "WizSense Technology revolutionizes AI by integrating advanced sensing capabilities for intelligent systems across various applications.",
       image: WizSenseImg,
-      link: '/technologies/wizsense',
+      mobileImage: WizSenseImg,
+      link: "/technologies/wizsense",
     },
     {
-      title: 'Auto Tracking Technology',
-      description: 'Auto Tracking provides seamless target following with intelligent algorithms to detect and track moving objects with precision accuracy.',
+      title: "Auto Tracking Technology",
+      description:
+        "Auto Tracking provides seamless target following with intelligent algorithms to detect and track moving objects with precision accuracy.",
       image: AutoTrackingImg,
-      link: '/technologies/auto-tracking',
+      mobileImage: AutoTrackingImg,
+      link: "/technologies/auto-tracking",
     },
     {
-      title: 'Predictive Focus Algorithm',
-      description: 'Predictive Focus uses machine learning to maintain optimal focus on moving subjects, ensuring clear imagery in dynamic surveillance scenarios.',
+      title: "Predictive Focus Algorithm",
+      description:
+        "Predictive Focus uses machine learning to maintain optimal focus on moving subjects, ensuring clear imagery in dynamic surveillance scenarios.",
       image: PredictiveFocusImg,
-      link: '/technologies/predictive-focus',
+      mobileImage: PredictiveFocusImg,
+      link: "/technologies/predictive-focus",
     },
     {
-      title: 'WizMind Technology',
-      description: "WizMind combines deep learning with powerful processing to deliver intelligent video analytics and proactive security solutions.",
+      title: "WizMind Technology",
+      description:
+        "WizMind combines deep learning with powerful processing to deliver intelligent video analytics and proactive security solutions.",
       image: WizMindImg,
-      link: '/technologies/wizmind',
+      mobileImage: WizMindImg,
+      link: "/technologies/wizmind",
     },
     {
-      title: 'HDCVI TEN Technology',
-      description: "Dahua's HDCVI TEN Technology revolutionizes over-coax surveillance with AI-for-all, Scheduled AI, Smart Dual Illuminators, and Real 5MP 16:9 capabilities, advancing safety and smart living.",
+      title: "HDCVI TEN Technology",
+      description:
+        "Dahua's HDCVI TEN Technology revolutionizes over-coax surveillance with AI-for-all, Scheduled AI, Smart Dual Illuminators, and Real 5MP 16:9 capabilities, advancing safety and smart living.",
       image: HDCVITenImg,
-      link: '/technologies/hdcvi-ten',
+      mobileImage: HDCVITenImg,
+      link: "/technologies/hdcvi-ten",
     },
   ];
+
+  // Detect mobile on mount and window resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Preload images and check for errors
   useEffect(() => {
@@ -62,9 +87,11 @@ export default function TechnologySlider() {
         slides.map(async (slide, index) => {
           try {
             const img = new Image();
-            const imageSrc = typeof slide.image === 'string' ? slide.image : slide.image.src;
+            const imageToLoad = isMobile ? slide.mobileImage : slide.image;
+            const imageSrc =
+              typeof imageToLoad === "string" ? imageToLoad : imageToLoad.src;
             img.src = imageSrc;
-            
+
             return new Promise<boolean>((resolve) => {
               img.onload = () => {
                 console.log(`✓ Loaded: ${slide.title} - ${imageSrc}`);
@@ -72,7 +99,10 @@ export default function TechnologySlider() {
               };
               img.onerror = () => {
                 console.error(`✗ Failed to load: ${slide.title} - ${imageSrc}`);
-                setImageErrors(prev => [...prev, `${slide.title}: ${imageSrc}`]);
+                setImageErrors((prev) => [
+                  ...prev,
+                  `${slide.title}: ${imageSrc}`,
+                ]);
                 resolve(false);
               };
             });
@@ -82,20 +112,22 @@ export default function TechnologySlider() {
           }
         })
       );
-      
+
       setLoadedImages(results);
-      
+
       // Log summary
       const loadedCount = results.filter(Boolean).length;
-      console.log(`Image loading summary: ${loadedCount}/${slides.length} loaded successfully`);
-      
+      console.log(
+        `Image loading summary: ${loadedCount}/${slides.length} loaded successfully`
+      );
+
       if (imageErrors.length > 0) {
-        console.error('Failed images:', imageErrors);
+        console.error("Failed images:", imageErrors);
       }
     };
-    
+
     preloadImages();
-  }, []);
+  }, [isMobile]);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
@@ -116,7 +148,9 @@ export default function TechnologySlider() {
         <div className="fixed top-4 left-4 right-4 bg-red-900/90 text-white p-4 rounded-lg z-50 text-sm max-w-md">
           <div className="font-bold mb-2">Image Loading Errors:</div>
           {imageErrors.map((error, index) => (
-            <div key={index} className="text-xs mb-1">{error}</div>
+            <div key={index} className="text-xs mb-1">
+              {error}
+            </div>
           ))}
         </div>
       )}
@@ -134,14 +168,13 @@ export default function TechnologySlider() {
               key={index}
               onClick={() => goToSlide(index)}
               aria-label={`Go to slide ${index + 1}`}
-              className={`relative z-10 flex items-center justify-center rounded-full transition-colors duration-300 ease-out w-7 h-7 ${currentSlide === index
-                ? 'bg-white text-gray-900 font-bold shadow-md'
-                : 'bg-white/25 text-white hover:bg-white/35'
-                }`}
+              className={`relative z-10 flex items-center justify-center rounded-full transition-colors duration-300 ease-out w-7 h-7 ${
+                currentSlide === index
+                  ? "bg-white text-gray-900 font-bold shadow-md"
+                  : "bg-white/25 text-white hover:bg-white/35"
+              }`}
             >
-              <span className="font-medium text-xs">
-                {index + 1}
-              </span>
+              <span className="font-medium text-xs">{index + 1}</span>
               {/* Show loading status indicator */}
               {loadedImages[index] === false && (
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
@@ -159,10 +192,9 @@ export default function TechnologySlider() {
               key={index}
               onClick={() => goToSlide(index)}
               aria-label={`Go to slide ${index + 1}`}
-              className={`rounded-full transition-colors duration-300 ease-out w-2.5 h-2.5 ${currentSlide === index
-                ? 'bg-white'
-                : 'bg-white/40'
-                }`}
+              className={`rounded-full transition-colors duration-300 ease-out w-2.5 h-2.5 ${
+                currentSlide === index ? "bg-white" : "bg-white/40"
+              }`}
             />
           ))}
         </div>
@@ -176,19 +208,24 @@ export default function TechnologySlider() {
             {slides.map((slide, index) => (
               <div
                 key={index}
-                className={`absolute inset-0 w-full transition-all duration-700 ease-in-out ${currentSlide === index
-                  ? 'opacity-100 translate-y-0'
-                  : index < currentSlide
-                    ? 'opacity-0 -translate-y-full'
-                    : 'opacity-0 translate-y-full'
-                  }`}
+                className={`absolute inset-0 w-full transition-all duration-700 ease-in-out ${
+                  currentSlide === index
+                    ? "opacity-100 translate-y-0 lg:translate-y-0 scale-100"
+                    : isMobile
+                    ? "opacity-0 scale-95"
+                    : index < currentSlide
+                    ? "opacity-0 -translate-y-full"
+                    : "opacity-0 translate-y-full"
+                }`}
               >
                 <div className="text-white space-y-2 lg:space-y-4 text-center lg:text-left">
                   <h1 className="text-xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold leading-tight bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent px-2 lg:px-0">
                     {slide.title}
                     {/* Show error indicator */}
                     {loadedImages[index] === false && (
-                      <span className="ml-2 text-xs text-red-400 align-middle">(Image missing)</span>
+                      <span className="ml-2 text-xs text-red-400 align-middle">
+                        (Image missing)
+                      </span>
                     )}
                   </h1>
                   <p className="text-sm sm:text-lg text-gray-200 leading-relaxed max-w-lg mx-auto lg:mx-0 px-2 lg:px-0">
@@ -197,7 +234,8 @@ export default function TechnologySlider() {
                   <div className="pt-1">
                     <a
                       href={slide.link}
-                      className="group relative px-5 py-2 overflow-hidden border-2 border-white transition-all duration-300 mx-auto lg:mx-0 block w-fit"
+                      className="group rounded-full
+relative px-5 py-2 overflow-hidden border-2 border-white transition-all duration-300 mx-auto lg:mx-0 block w-fit"
                     >
                       <span className="relative z-10 text-white group-hover:text-gray-900 transition-colors duration-300 text-sm sm:text-base">
                         Learn More
@@ -210,16 +248,17 @@ export default function TechnologySlider() {
             ))}
           </div>
 
-          {/* Right content - Single Image Display with slightly bigger dimensions */}
-          <div className="relative flex justify-center items-center h-[260px] sm:h-[360px] lg:h-[500px] w-full order-1 lg:order-2 mb-4 lg:mb-0">
-            <div className="relative w-[200px] h-[240px] sm:w-[250px] sm:h-[320px] lg:w-[320px] lg:h-[400px]">
+          {/* Right content - Single Image Display with different sizes for mobile */}
+          <div className="relative flex justify-center items-center h-[350px] sm:h-[400px] lg:h-[500px] w-full order-1 lg:order-2 mb-4 lg:mb-0">
+            <div className="relative w-[280px] h-[350px] sm:w-[300px] sm:h-[380px] lg:w-[320px] lg:h-[400px]">
               {slides.map((slide, index) => (
                 <div
                   key={index}
-                  className={`absolute inset-0 rounded-xl overflow-hidden pointer-events-none select-none transition-opacity duration-700 ${currentSlide === index
-                    ? 'opacity-100 z-10'
-                    : 'opacity-0 z-0'
-                    }`}
+                  className={`absolute inset-0 rounded-xl overflow-hidden pointer-events-none select-none transition-all duration-700 ${
+                    currentSlide === index
+                      ? "opacity-100 z-10 scale-100"
+                      : "opacity-0 z-0 lg:scale-100 scale-95"
+                  }`}
                 >
                   {loadedImages[index] === false ? (
                     <div className="w-full h-full flex items-center justify-center bg-gray-800/50 rounded-xl">
@@ -231,20 +270,33 @@ export default function TechnologySlider() {
                           {slide.title}
                         </div>
                         <div className="text-gray-400 text-xs mt-2">
-                          Check: {typeof slide.image === 'string' ? slide.image : slide.image.src}
+                          Check:{" "}
+                          {typeof slide.image === "string"
+                            ? slide.image
+                            : slide.image.src}
                         </div>
                       </div>
                     </div>
                   ) : (
                     <img
-                      src={typeof slide.image === 'string' ? slide.image : slide.image.src}
+                      src={
+                        isMobile
+                          ? typeof slide.mobileImage === "string"
+                            ? slide.mobileImage
+                            : slide.mobileImage.src
+                          : typeof slide.image === "string"
+                          ? slide.image
+                          : slide.image.src
+                      }
                       alt={slide.title}
                       className="w-full h-full object-cover rounded-xl"
                       loading="eager"
                       draggable="false"
                       onError={(e) => {
-                        console.error(`Failed to load image for: ${slide.title}`);
-                        e.currentTarget.style.display = 'none';
+                        console.error(
+                          `Failed to load image for: ${slide.title}`
+                        );
+                        e.currentTarget.style.display = "none";
                         // Show error state
                         const parent = e.currentTarget.parentElement;
                         if (parent) {

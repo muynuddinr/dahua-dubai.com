@@ -1,6 +1,6 @@
 'use client'
-import React, { useState } from 'react';
-import { motion, Variants } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, useReducedMotion, Variants } from 'framer-motion';
 import { MapPin, Phone, Mail, Clock, Send, ArrowRight, Shield, Users, Building, Star, Navigation, Camera } from 'lucide-react';
 import Image from 'next/image';
 const Contact = () => {
@@ -16,6 +16,12 @@ const Contact = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [isLoaded, setIsLoaded] = useState(false);
+    const shouldReduceMotion = useReducedMotion();
+
+    useEffect(() => {
+        setIsLoaded(true);
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData({
@@ -144,6 +150,33 @@ const Contact = () => {
         }),
     }
 
+    const containerVariants: Variants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.2,
+                delayChildren: 0.1,
+            },
+        },
+    };
+
+    const imageVariants: Variants = {
+        hidden: { opacity: 0, scale: 1.1 },
+        visible: {
+            opacity: 1,
+            scale: 1,
+            transition: {
+                duration: 0.8,
+                ease: "easeOut",
+            },
+        },
+    };
+
+    const reducedMotionVariants: Variants = {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1 },
+    };
 
     const scaleIn = {
         hidden: { opacity: 0, scale: 0.9 },
@@ -168,6 +201,13 @@ const Contact = () => {
         }
     };
 
+    const mobileBannerData = {
+        image: "/mobile/contact.jpg",
+        title: "Contact Us",
+        subtitle: "Get In Touch",
+        description: "Ready to discuss your enquiry? Fill out the form and we will respond within 24 hours.",
+    };
+
     // Update your input styles
     const getInputStyles = (hasError: boolean) => `
   w-full px-4 py-3 border
@@ -186,7 +226,8 @@ const Contact = () => {
     return (
         <div className="relative min-h-screen">
             {/* Hero Section */}
-            <section className="relative w-full h-screen flex items-center justify-start overflow-hidden">
+            {/* Desktop Hero Section */}
+            <section className="hidden md:block relative w-full h-screen flex items-center justify-start overflow-hidden">
                 <style jsx global>{`
           html,
           body {
@@ -224,11 +265,9 @@ const Contact = () => {
                             className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight"
                             style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.8)' }}
                         >
-                            <span className="block">Contact <span className=" text-red-600">Us</span></span>
+                            <span className="block">Contact <span className="text-red-600">Us</span></span>
 
                         </motion.h1>
-
-
 
                         <motion.p
                             custom={1}
@@ -239,9 +278,53 @@ const Contact = () => {
                             Ready to discuss your enquiry? Fill out the form below and we will respond within 24
                             hours with a personalized consultation.
                         </motion.p>
-
-
                     </div>
+                </motion.div>
+            </section>
+
+            {/* Mobile Hero Section */}
+            <section className="md:hidden relative w-full h-96 flex items-center justify-center overflow-hidden">
+                <motion.div
+                    variants={shouldReduceMotion ? reducedMotionVariants : imageVariants}
+                    initial="hidden"
+                    animate={isLoaded ? "visible" : "hidden"}
+                    className="absolute inset-0"
+                >
+                    <Image
+                        src={mobileBannerData.image}
+                        alt="Contact Hero Mobile"
+                        fill
+                        className="object-cover w-full h-full"
+                        priority
+                        quality={100}
+                        onLoad={() => setIsLoaded(true)}
+                    />
+                </motion.div>
+                <div className="absolute inset-0 bg-black/60"></div>
+                <motion.div
+                    variants={shouldReduceMotion ? reducedMotionVariants : containerVariants}
+                    initial="hidden"
+                    animate={isLoaded ? "visible" : "hidden"}
+                    className="relative z-10 text-center px-4 space-y-4"
+                >
+                    <motion.h1
+                        variants={shouldReduceMotion ? reducedMotionVariants : textVariants}
+                        className="text-2xl sm:text-3xl font-bold text-white leading-tight"
+                    >
+                        <span className="block text-white">{mobileBannerData.title.split(' ')[0]} <span className='text-red-600'>{mobileBannerData.title.split(' ')[1]}</span></span>
+                    </motion.h1>
+                    <motion.p
+                        variants={shouldReduceMotion ? reducedMotionVariants : textVariants}
+                        className="text-sm sm:text-base text-gray-100 leading-snug"
+                    >
+                        {mobileBannerData.subtitle}
+                    </motion.p>
+                    <motion.p
+                        variants={shouldReduceMotion ? reducedMotionVariants : textVariants}
+                        className="text-sm sm:text-base text-gray-100 leading-snug"
+                    >
+                        {mobileBannerData.description}
+                    </motion.p>
                 </motion.div>
             </section>
 
@@ -485,7 +568,7 @@ const Contact = () => {
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className={`inline-flex items-center gap-3 px-7 py-3 border-2 ${isSubmitting
+                                        className={`inline-flex rounded-full items-center gap-3 px-7 py-3 border-2 ${isSubmitting
                                             ? 'bg-gray-400 border-gray-400 cursor-not-allowed text-white'
                                             : 'border-black text-black bg-transparent hover:bg-red-600 hover:border-red-600 hover:text-white'
                                             } transition-all duration-300 font-semibold group text-base`}

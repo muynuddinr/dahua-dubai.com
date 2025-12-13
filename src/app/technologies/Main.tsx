@@ -1,7 +1,8 @@
 "use client";
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { motion, useInView, useReducedMotion, Variants } from 'framer-motion';
 import Image from 'next/image';
+
 const technologiesData = [
   {
     id: 'wizsense',
@@ -71,6 +72,7 @@ const technologiesData = [
 ]
 
 const Main = () => {
+  const [isLoaded, setIsLoaded] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
   // Refs for each category section
@@ -130,6 +132,7 @@ const Main = () => {
       }
     });
   }, [inViewStates]);
+
   // Animation variants
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -212,15 +215,36 @@ const Main = () => {
     }
   };
 
+  // Image variants (for mobile banner)
+  const imageVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.8
+      }
+    }
+  };
+
   // Simplified variants for reduced motion
   const reducedMotionVariants: Variants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1 }
   };
 
+  // Banner data for hero section
+  const mobileBannerData = {
+    image: "/mobile/siramo.jpg",
+    title: "Advanced Technologies",
+    subtitle: "Cutting-edge Solutions",
+    description:
+      "Cutting-edge security technologies powered by AI, deep learning, and innovative imaging solutions for next-generation surveillance systems.",
+  };
+
   return (
     <div className="bg-gradient-to-r from-red-900/80 to-transparent overflow-hidden">
-      <section className="relative w-full h-screen flex items-center justify-start overflow-hidden">
+      {/* Desktop Hero Section */}
+      <section className="hidden md:block relative w-full h-screen flex items-center justify-start overflow-hidden">
         <motion.div
           initial={{ scale: 1.1 }}
           animate={{ scale: 1 }}
@@ -229,14 +253,14 @@ const Main = () => {
         >
           <Image
             src="/images/Advanced Technologies.jpg"
-            alt="SIRA Hero"
+            alt="Advanced Technologies"
             fill
             className="object-cover w-full h-full"
             priority
             quality={100}
           />
         </motion.div>
-        <div className="absolute inset-0  bg-opacity-40 flex items-center">
+        <div className="absolute inset-0 bg-opacity-40 flex items-center">
           <div className="max-w-4xl px-10 space-y-6">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
@@ -244,9 +268,8 @@ const Main = () => {
               transition={{ duration: 0.8 }}
               className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight"
             >
-              <span className="block text-5xl text-white">Advanced</span>
-              <span className="block text-5xl text-red-500">Technologies</span>
-
+              <span className="block text-white">Advanced</span>
+              <span className="block text-red-500">Technologies</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0 }}
@@ -254,9 +277,7 @@ const Main = () => {
               transition={{ delay: 0.3, duration: 0.8 }}
               className="text-base md:text-lg text-gray-100 max-w-3xl leading-snug"
             >
-              Trusted by businesses across Dubai, we specialize in expert security system
-              installations that are fully compliant with SIRA regulations—ensuring your property
-              is protected, secure, and future-ready.
+              Cutting-edge security technologies powered by AI, deep learning, and innovative imaging solutions for next-generation surveillance systems.
             </motion.p>
 
             <motion.div
@@ -268,6 +289,75 @@ const Main = () => {
           </div>
         </div>
       </section>
+
+      {/* Mobile Hero Section - Restructured like Banner component */}
+      <section className="md:hidden relative w-full h-96 overflow-hidden">
+        <div className="absolute inset-0">
+          {/* Mobile Banner Image */}
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={imageVariants}
+            className="w-full h-full"
+          >
+            <img
+              src={mobileBannerData.image}
+              alt="Advanced Technologies"
+              className="w-full h-96 object-cover"
+              onLoad={() => setIsLoaded(true)}
+              onError={() => setIsLoaded(true)}
+            />
+          </motion.div>
+
+          {/* Dark overlay for better text readability */}
+          <div className="absolute inset-0 bg-black/60" />
+
+          {/* Banner Content - Mobile */}
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="absolute inset-0 flex flex-col items-center justify-center text-white p-4 text-center z-10"
+          >
+            {/* Subtitle/Highlight Text */}
+            <motion.p
+              variants={textVariants}
+              custom={0}
+              className="text-xs font-semibold text-red-500 mb-2 uppercase tracking-wide"
+            >
+              Next-Generation Solutions
+            </motion.p>
+
+            {/* Title */}
+            <motion.h1
+              variants={textVariants}
+              custom={0.1}
+              className="text-2xl sm:text-3xl font-bold text-white leading-tight mb-2"
+            >
+              {mobileBannerData.title}
+            </motion.h1>
+
+            {/* Subtitle */}
+            <motion.p
+              variants={textVariants}
+              custom={0.2}
+              className="text-sm sm:text-base text-red-400 font-semibold mb-3"
+            >
+              {mobileBannerData.subtitle}
+            </motion.p>
+
+            {/* Description */}
+            <motion.p
+              variants={textVariants}
+              custom={0.3}
+              className="text-xs sm:text-sm leading-relaxed mb-4 max-w-sm text-gray-100"
+            >
+              {mobileBannerData.description}
+            </motion.p>
+          </motion.div>
+        </div>
+      </section>
+
       <section className="py-16 bg-gray-100">
         <motion.div
           ref={headerRef}
@@ -307,13 +397,7 @@ const Main = () => {
               Our innovative technologies combine AI, deep learning, and advanced imaging to
               deliver unparalleled security solutions.
             </p>
-
-
-
-
           </motion.div>
-
-
         </motion.div>
 
         <div className="w-full flex flex-col gap-8">
@@ -328,9 +412,9 @@ const Main = () => {
                 variants={shouldReduceMotion ? reducedMotionVariants : slideVariants}
                 initial="hidden"
                 animate={isInView ? "visible" : "hidden"}
-                className="relative bg-cover bg-center h-[70vh] w-full overflow-hidden"
+                className="relative bg-cover bg-center h-96 md:h-[70vh] w-full overflow-hidden"
               >
-                {/* Background Video with Blackish Opacity */}
+                {/* Background Image */}
                 <div className="absolute inset-0 w-full h-full">
                   <Image
                     ref={imageRefs[index]}
@@ -343,7 +427,7 @@ const Main = () => {
                   />
                 </div>
 
-                {/* Dark Overlay for additional blackish effect */}
+                {/* Dark Overlay */}
                 <div className="absolute inset-0 bg-black/30"></div>
 
                 {/* Gradient Overlay */}
@@ -371,7 +455,7 @@ const Main = () => {
                     variants={shouldReduceMotion ? reducedMotionVariants : textVariants}
                     initial="hidden"
                     animate={isInView ? "visible" : "hidden"}
-                    className="text-2xl md:text-4xl font-bold mb-3 text-white drop-shadow-lg" // Reduced from 4xl/6xl to 2xl/4xl
+                    className="text-2xl md:text-4xl font-bold mb-3 text-white drop-shadow-lg"
                   >
                     {category.title}
                   </motion.h2>
@@ -381,7 +465,7 @@ const Main = () => {
                     variants={shouldReduceMotion ? reducedMotionVariants : textVariants}
                     initial="hidden"
                     animate={isInView ? "visible" : "hidden"}
-                    className="text-base md:text-lg mb-3 text-gray-200" // Reduced from lg/xl to base/lg
+                    className="text-base md:text-lg mb-3 text-gray-200"
                   >
                     {category.subtitle}
                   </motion.p>

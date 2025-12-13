@@ -4,6 +4,9 @@ import { motion } from 'framer-motion'
 import { Camera, Zap, Shield, Cpu, Video, Signal } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useInView } from 'react-intersection-observer'
+import Image from 'next/image'
+import { Variants, useReducedMotion } from 'framer-motion'
+
 function FeatureCard({
   icon: Icon,
   iconBg,
@@ -72,11 +75,53 @@ const Counter = ({
   )
 }
 export default function HDCVITenPage() {
-  const [isPlaying, setIsPlaying] = useState(false)
-
+  const [isLoaded, setIsLoaded] = useState(true)
   const handlePlayVideo = () => {
-    setIsPlaying(true)
+    setIsLoaded(true)
   }
+
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
+  const textVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6 },
+    },
+  };
+
+  const imageVariants: Variants = {
+    hidden: { scale: 1.1 },
+    visible: {
+      scale: 1,
+      transition: { duration: 1.5, ease: 'easeOut' },
+    },
+  };
+
+  const reducedMotionVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.5 } },
+  };
+
+  const shouldReduceMotion = useReducedMotion();
+
+  const mobileBannerData = {
+    image: "/mobile/tech/hdcvi.jpg",
+    title: "HDCVI 10.0",
+    subtitle: "AI Over-Coax Era",
+    description:
+      "Next-generation HDCVI technology with integrated AI capabilities over coaxial cables.",
+  };
 
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
@@ -89,9 +134,9 @@ export default function HDCVITenPage() {
 
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
-      {/* Hero Section */}
+      {/* Desktop Hero Section */}
       <motion.section
-        className="relative w-full h-screen flex items-center justify-start overflow-hidden"
+        className="hidden md:flex relative w-full h-screen items-center justify-start overflow-hidden"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
@@ -135,6 +180,46 @@ export default function HDCVITenPage() {
             </motion.p>
           </div>
         </div>
+      </motion.section>
+
+      {/* Mobile Hero Section */}
+      <motion.section
+        className="md:hidden relative w-full h-96 flex items-center justify-center overflow-hidden"
+        initial="hidden"
+        animate={isLoaded ? "visible" : "hidden"}
+        variants={
+          shouldReduceMotion ? reducedMotionVariants : containerVariants
+        }
+      >
+        <motion.div
+          variants={shouldReduceMotion ? reducedMotionVariants : imageVariants}
+          className="w-full h-full"
+        >
+          <Image
+            src={mobileBannerData.image}
+            alt={mobileBannerData.title}
+            fill
+            className="object-cover"
+            onLoad={() => setIsLoaded(true)}
+          />
+        </motion.div>
+        <div className="absolute inset-0 bg-black/40"></div>
+        <motion.div
+          variants={shouldReduceMotion ? reducedMotionVariants : textVariants}
+          className="absolute inset-0 flex items-center justify-center text-center px-6"
+        >
+          <div className="space-y-4">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
+              <span className="block">{mobileBannerData.title}</span>
+              <span className="block text-red-500">
+                {mobileBannerData.subtitle}
+              </span>
+            </h1>
+            <p className="text-sm sm:text-base text-gray-100 leading-snug max-w-md mx-auto">
+              {mobileBannerData.description}
+            </p>
+          </div>
+        </motion.div>
       </motion.section>
 
       {/* Video Section */}

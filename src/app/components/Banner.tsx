@@ -6,7 +6,7 @@ import { Variants } from "framer-motion";
 export default function Banner() {
     const [isLoaded, setIsLoaded] = useState(false);
 
-    const bannerData = {
+    const desktopBannerData = {
         image: "/images/main-banner.png",
         title: "Leading Dahua Security in Dubai",
         titleHighlight: "Dahua",
@@ -17,6 +17,16 @@ export default function Banner() {
         ctaLink: "/products",
     };
 
+    const mobileBannerData = {
+        image: "/mobile/Main Banner.png",
+        title: "Dahua Security in Dubai",
+        titleHighlight: "Dahua",
+        highlight: "SIRA Approved Partner",
+        description:
+            "Enterprise-grade security and surveillance solutions. Dahua cameras, DVRs, and NVRs for the UAE.",
+        cta: "View Solutions",
+        ctaLink: "/products",
+    };
 
     // Animation variants
     const containerVariants: Variants = {
@@ -68,11 +78,11 @@ export default function Banner() {
     };
 
     return (
-        <div className="w-full relative banner">
-            {/* Banner Container - Full screen height */}
-            <div className="relative w-full h-screen mt-4 min-h-[600px] overflow-hidden">
+        <div className="w-full relative">
+            {/* Desktop Banner */}
+            <div className="hidden md:block relative w-full h-screen mt-4 min-h-[600px] overflow-hidden">
                 <div className="absolute inset-0">
-                    {/* Single Banner Image */}
+                    {/* Desktop Banner Image */}
                     <motion.div
                         initial="hidden"
                         animate="visible"
@@ -80,11 +90,11 @@ export default function Banner() {
                         className="w-full h-full"
                     >
                         <img
-                            src={bannerData.image}
+                            src={desktopBannerData.image}
                             alt="Dahua Security Solutions in Dubai"
                             className="w-full h-full object-cover"
                             onLoad={() => setIsLoaded(true)}
-                            onError={() => setIsLoaded(true)} // Fallback in case image fails to load
+                            onError={() => setIsLoaded(true)}
                         />
                     </motion.div>
 
@@ -95,23 +105,23 @@ export default function Banner() {
                     <div className="absolute inset-0 flex items-center">
                         <motion.div
                             initial="hidden"
-                            animate={isLoaded ? "visible" : "visible"} // Changed to always show content
+                            animate={isLoaded ? "visible" : "visible"}
                             variants={containerVariants}
-                            className="text-white px-6 md:px-12 lg:px-16 max-w-4xl lg:max-w-5xl"
+                            className="text-white px-4 sm:px-6 md:px-12 lg:px-16 max-w-4xl lg:max-w-5xl"
                         >
                             {/* Highlight Text */}
                             <motion.p
                                 variants={itemVariants}
                                 className="text-lg md:text-xl font-semibold text-red-500 mb-2"
                             >
-                                {bannerData.highlight}
+                                {desktopBannerData.highlight}
                             </motion.p>
 
                             {/* Title with Animated Underline */}
-                            <div className="relative inline-block mb-6">
+                            <div className="relative inline-block mb-4 sm:mb-6">
                                 <motion.h1
                                     variants={itemVariants}
-                                    className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4"
+                                    className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-2 sm:mb-4"
                                 >
                                     Reliable <span className="text-red-600">Dahua</span> Security Expertise in Dubai
                                 </motion.h1>
@@ -124,36 +134,112 @@ export default function Banner() {
                             {/* Description */}
                             <motion.p
                                 variants={itemVariants}
-                                className="text-lg md:text-xl mb-8 leading-relaxed max-w-3xl"
+                                className="text-base md:text-lg lg:text-xl mb-6 sm:mb-8 leading-relaxed max-w-3xl"
                             >
-                                {bannerData.description}
+                                {desktopBannerData.description}
                             </motion.p>
 
                             {/* Call to Action Button */}
-
                         </motion.div>
                     </div>
                 </div>
             </div>
 
-            {/* Custom Styles */}
+            {/* Mobile Banner */}
+            <div className="md:hidden relative w-full h-96 overflow-hidden">
+                <div className="absolute inset-0">
+                    {/* Mobile Banner Image */}
+                    <motion.div
+                        initial="hidden"
+                        animate="visible"
+                        variants={imageVariants}
+                        className="w-full h-full"
+                    >
+                        <img
+                            src={mobileBannerData.image}
+                            className="w-full h-96 object-cover"
+                            alt={mobileBannerData.title}
+                            width="600"
+                            height="900"
+                            onLoad={() => setIsLoaded(true)}
+                            onError={() => setIsLoaded(true)}
+                        />
+                    </motion.div>
+
+                    {/* Dark overlay for better text readability */}
+                    <div className="absolute inset-0 bg-black/60" />
+
+                    {/* Banner Content - Mobile */}
+                    <motion.div 
+                        initial="hidden"
+                        animate="visible"
+                        variants={containerVariants}
+                        className="absolute inset-0 flex flex-col items-center justify-center text-white p-4 text-center z-10"
+                    >
+                        {/* Highlight Text */}
+                        <motion.p
+                            variants={itemVariants}
+                            className="text-xs font-semibold text-red-500 mb-2 uppercase tracking-wide"
+                        >
+                            {mobileBannerData.highlight}
+                        </motion.p>
+
+                        {/* Title */}
+                        <motion.h2
+                            variants={itemVariants}
+                            className="text-lg font-bold leading-tight mb-2"
+                        >
+                            {mobileBannerData.title}
+                        </motion.h2>
+
+                        {/* Description */}
+                        <motion.p
+                            variants={itemVariants}
+                            className="text-xs leading-relaxed mb-4 max-w-sm"
+                        >
+                            {mobileBannerData.description}
+                        </motion.p>
+
+                        {/* Call to Action Button */}
+                        
+                    </motion.div>
+                </div>
+            </div>
+
+            {/* Custom Styles for complex parts */}
             <style jsx global>{`
-                .banner p {
-                    font-size: 18px;
-                    line-height: 1.75;
-                    margin: 0;
-                    max-width: none;
-                    display: block;
-                    overflow: visible;
-                    text-overflow: clip;
-                    max-height: none;
+                @keyframes subtleGlow {
+                    0% { text-shadow: 0 0 1px rgba(255,255,255,0.2); }
+                    50% { text-shadow: 0 0 8px rgba(255,255,255,0.4); }
+                    100% { text-shadow: 0 0 1px rgba(255,255,255,0.2); }
                 }
-                
-                /* Ensure image covers the container properly */
-                .banner img {
-                    object-fit: cover;
+
+                .shop-now-btn::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
                     width: 100%;
                     height: 100%;
+                    background: linear-gradient(
+                        90deg,
+                        rgba(255, 255, 255, 0.1) 0%,
+                        rgba(255, 255, 255, 0.3) 50%,
+                        rgba(255, 255, 255, 0.1) 100%
+                    );
+                    transition: all 0.5s ease-in-out;
+                    transform: skewX(-20deg);
+                    z-index: 0;
+                }
+
+                .shop-now-btn:hover::before,
+                .shop-now-btn:active::before {
+                    left: 200%;
+                }
+
+                .carousel-item-container:hover .carousel-image,
+                .carousel-item-container:active .carousel-image {
+                    transform: scale(1.05);
                 }
             `}</style>
         </div>
