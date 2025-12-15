@@ -16,6 +16,7 @@ export default function TechnologySlider() {
   const [loadedImages, setLoadedImages] = useState<boolean[]>([]);
   const [imageErrors, setImageErrors] = useState<string[]>([]);
   const [isMobile, setIsMobile] = useState(false);
+  const [autoPlayPaused, setAutoPlayPaused] = useState(false);
 
   const slides = [
     {
@@ -129,16 +130,36 @@ export default function TechnologySlider() {
     preloadImages();
   }, [isMobile]);
 
+  // Auto-play slides every 3 seconds
+  useEffect(() => {
+    if (autoPlayPaused) return;
+
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [autoPlayPaused, slides.length]);
+
   const nextSlide = () => {
+    setAutoPlayPaused(true);
     setCurrentSlide((prev) => (prev + 1) % slides.length);
+    // Resume auto-play after 5 seconds of inactivity
+    setTimeout(() => setAutoPlayPaused(false), 5000);
   };
 
   const prevSlide = () => {
+    setAutoPlayPaused(true);
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    // Resume auto-play after 5 seconds of inactivity
+    setTimeout(() => setAutoPlayPaused(false), 5000);
   };
 
   const goToSlide = (index: number) => {
+    setAutoPlayPaused(true);
     setCurrentSlide(index);
+    // Resume auto-play after 5 seconds of inactivity
+    setTimeout(() => setAutoPlayPaused(false), 5000);
   };
 
   return (
