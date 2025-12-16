@@ -23,13 +23,21 @@ interface Category {
 
 async function getCategories(): Promise<Category[]> {
   try {
-    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/category`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+    
+    if (!apiUrl) {
+      console.error('NEXT_PUBLIC_API_URL is not set in production');
+      return [];
+    }
+
+    const response = await axios.get(`${apiUrl}/api/category`, {
       headers: {
         'Cache-Control': 'no-cache',
       },
+      timeout: 10000,
     });
     
-    if (response.data.success) {
+    if (response.data.success && Array.isArray(response.data.data)) {
       // Only show active categories, sorted by order
       return response.data.data
         .filter((cat: Category) => cat.isActive)
@@ -44,13 +52,21 @@ async function getCategories(): Promise<Category[]> {
 
 async function getNavbarCategories(): Promise<NavbarCategory[]> {
   try {
-    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/navbar-category`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+    
+    if (!apiUrl) {
+      console.error('NEXT_PUBLIC_API_URL is not set in production');
+      return [];
+    }
+
+    const response = await axios.get(`${apiUrl}/api/navbar-category`, {
       headers: {
         'Cache-Control': 'no-cache',
       },
+      timeout: 10000,
     });
     
-    if (response.data.success) {
+    if (response.data.success && Array.isArray(response.data.data)) {
       return response.data.data;
     }
     return [];

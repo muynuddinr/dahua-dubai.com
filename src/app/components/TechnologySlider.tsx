@@ -62,7 +62,7 @@ export default function TechnologySlider() {
     {
       title: "HDCVI TEN Technology",
       description:
-        "Dahua's HDCVI TEN Technology revolutionizes over-coax surveillance with AI-for-all, Scheduled AI, Smart Dual Illuminators, and Real 5MP 16:9 capabilities, advancing safety and smart living.",
+        "Dahua's HDCVI TEN brings AI-for-all, Scheduled AI, Smart Dual Illuminators and real 5MP 16:9 over coax for safer, smarter living.",
       image: HDCVITenImg,
       mobileImage: HDCVITenImg,
       link: "/technologies/hdcvi-ten",
