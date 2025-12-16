@@ -194,9 +194,7 @@ const ProductShowcase = ({
                     }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
                   >
-                    <p className="text-red-400 text-sm md:text-base leading-relaxed mt-3 mb-6 font-light max-w-xs drop-shadow-lg">
-                      {item.description}
-                    </p>
+                    
                   </motion.div>
                 )}
               </>
