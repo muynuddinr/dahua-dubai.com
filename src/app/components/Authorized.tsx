@@ -106,7 +106,7 @@ export default function DahuaDubaiPage() {
               >
                 <p className="text-gray-700 leading-relaxed text-base">
                   <span className="font-semibold text-gray-900">Seeking Dahua Solutions in Dubai?</span>{" "}
-                  For consultation with our certified security experts, contact us at +971552929644 or +971509664956. We are committed to delivering excellent service and technical support.
+                  For consultation with our certified security experts, contact us at +971552929644. We are committed to delivering excellent service and technical support.
                 </p>
               </motion.div>
             </motion.div>

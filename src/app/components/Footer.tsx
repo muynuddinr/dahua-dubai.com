@@ -264,15 +264,6 @@ export default function Footer() {
                 </Link>
               </div>
               <div className="flex items-center space-x-2 group">
-                <span className="text-red-500 font-bold text-xs transition-transform duration-200 group-hover:scale-110">📞</span>
-                <Link
-                  href="tel:+971509664956"
-                  className="text-gray-300 hover:text-white transition-all duration-200 text-xs hover:translate-x-1"
-                >
-                  +971 50 9664956
-                </Link>
-              </div>
-              <div className="flex items-center space-x-2 group">
                 <span className="text-red-500 font-bold text-xs transition-transform duration-200 group-hover:scale-110">🏢</span>
                 <span className="text-gray-300 text-xs">
                   Office: 9AM - 6PM (GMT+4)
