@@ -4,6 +4,25 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, User, Mail, Phone, Building2, MessageSquare } from 'lucide-react';
 
+// Helper function to get proper image URL
+const getImageUrl = (url?: string, publicId?: string): string => {
+  if (!url) return '';
+  
+  // If it's already a full Cloudinary URL, return as-is
+  if (url.startsWith('https://res.cloudinary.com')) {
+    return url;
+  }
+  
+  // If it's a local path but we have publicId, reconstruct Cloudinary URL
+  if (publicId) {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'websitedata123';
+    return `https://res.cloudinary.com/${cloudName}/image/upload/${publicId}`;
+  }
+  
+  // Fallback to original URL
+  return url;
+};
+
 interface ProductEnquiryModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -118,7 +137,7 @@ export default function ProductEnquiryModal({ isOpen, onClose, product }: Produc
                 {product.images && product.images.length > 0 ? (
                   <div className="relative flex-shrink-0">
                     <img
-                      src={product.images[0].url}
+                      src={getImageUrl(product.images[0].url, product.images[0].publicId)}
                       alt={product.name}
                       className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-cover rounded-lg sm:rounded-xl shadow-lg border-2 border-red-500/30"
                     />

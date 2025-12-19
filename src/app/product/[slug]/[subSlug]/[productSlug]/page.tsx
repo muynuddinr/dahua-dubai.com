@@ -2,6 +2,25 @@ import { notFound } from 'next/navigation';
 import ProductDetailPageClient from './ProductDetailClient';
 import type { Metadata } from 'next';
 
+// Helper function to get proper image URL
+const getImageUrl = (url?: string, publicId?: string): string => {
+  if (!url) return '';
+  
+  // If it's already a full Cloudinary URL, return as-is
+  if (url.startsWith('https://res.cloudinary.com')) {
+    return url;
+  }
+  
+  // If it's a local path but we have publicId, reconstruct Cloudinary URL
+  if (publicId) {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'websitedata123';
+    return `https://res.cloudinary.com/${cloudName}/image/upload/${publicId}`;
+  }
+  
+  // Fallback to original URL
+  return url;
+};
+
 interface NavbarCategory {
   _id: string;
   name: string;
@@ -146,7 +165,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `https://dahua-dubai.com/products/${slug}/${subSlug}/${productSlug}`,
       images:
         product.images.length > 0
-          ? [{ url: product.images[0].url }]
+          ? [{ url: getImageUrl(product.images[0].url, product.images[0].publicId) }]
           : []
     },
     robots: {

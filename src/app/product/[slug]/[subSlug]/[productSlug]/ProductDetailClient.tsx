@@ -21,6 +21,25 @@ import {
 } from "react-icons/fa";
 import styles from "./motion-button.module.css";
 
+// Helper function to get proper image URL
+const getImageUrl = (url?: string, publicId?: string): string => {
+  if (!url) return '';
+  
+  // If it's already a full Cloudinary URL, return as-is
+  if (url.startsWith('https://res.cloudinary.com')) {
+    return url;
+  }
+  
+  // If it's a local path but we have publicId, reconstruct Cloudinary URL
+  if (publicId) {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'websitedata123';
+    return `https://res.cloudinary.com/${cloudName}/image/upload/${publicId}`;
+  }
+  
+  // Fallback to original URL
+  return url;
+};
+
 interface NavbarCategory {
   _id: string;
   name: string;
@@ -523,7 +542,7 @@ export default function ProductDetailPageClient({
                     {product.images?.length > 0 ? (
                       <>
                         <img
-                          src={product.images[selectedImageIndex].url}
+                          src={getImageUrl(product.images[selectedImageIndex].url, product.images[selectedImageIndex].publicId)}
                           alt={product.name}
                           className="max-w-full max-h-full object-contain group-hover:scale-[1.02] transition-transform duration-500 ease-out"
                         />
@@ -579,7 +598,7 @@ export default function ProductDetailPageClient({
                         }`}
                       >
                         <img
-                          src={img.url}
+                          src={getImageUrl(img.url, img.publicId)}
                           alt={`${product.name} view ${index + 1}`}
                           className="w-full h-full object-contain"
                         />
@@ -683,7 +702,7 @@ export default function ProductDetailPageClient({
                   {/* Image Container */}
                   <div className="relative">
                     <img
-                      src={product.images[selectedImageIndex].url}
+                      src={getImageUrl(product.images[selectedImageIndex].url, product.images[selectedImageIndex].publicId)}
                       alt={product.name}
                       className="w-full h-auto max-h-[70vh] sm:max-h-[80vh] object-contain rounded-lg sm:rounded-2xl"
                       loading="lazy"

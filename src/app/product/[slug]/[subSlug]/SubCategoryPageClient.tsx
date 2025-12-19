@@ -13,6 +13,25 @@ import {
   FaFolder,
 } from "react-icons/fa";
 
+// Helper function to get proper image URL
+const getImageUrl = (url?: string, publicId?: string): string => {
+  if (!url) return '';
+  
+  // If it's already a full Cloudinary URL, return as-is
+  if (url.startsWith('https://res.cloudinary.com')) {
+    return url;
+  }
+  
+  // If it's a local path but we have publicId, reconstruct Cloudinary URL
+  if (publicId) {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'websitedata123';
+    return `https://res.cloudinary.com/${cloudName}/image/upload/${publicId}`;
+  }
+  
+  // Fallback to original URL
+  return url;
+};
+
 interface NavbarCategory {
   _id: string;
   name: string;
@@ -191,7 +210,7 @@ const ProductShowcase = ({
                 >
                   <div className="w-full h-full p-4">
                     <img
-                      src={item.images[0].url}
+                      src={getImageUrl(item.images[0].url, item.images[0].publicId)}
                       alt={item.name}
                       className="w-full h-full object-contain"
                     />

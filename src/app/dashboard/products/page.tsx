@@ -22,6 +22,25 @@ import {
   FaLink,
 } from 'react-icons/fa';
 
+// Helper function to get proper image URL
+const getImageUrl = (url?: string, publicId?: string): string => {
+  if (!url) return '';
+  
+  // If it's already a full Cloudinary URL, return as-is
+  if (url.startsWith('https://res.cloudinary.com')) {
+    return url;
+  }
+  
+  // If it's a local path but we have publicId, reconstruct Cloudinary URL
+  if (publicId) {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'websitedata123';
+    return `https://res.cloudinary.com/${cloudName}/image/upload/${publicId}`;
+  }
+  
+  // Fallback to original URL
+  return url;
+};
+
 interface NavbarCategory {
   _id: string;
   name: string;
@@ -97,6 +116,7 @@ export default function ProductsPage() {
     fetchCategories();
     fetchSubCategories();
     fetchProducts();
+    migrateImages();
   }, []);
 
   useEffect(() => {
@@ -141,6 +161,15 @@ export default function ProductsPage() {
       }
     } catch (err) {
       console.error('Error fetching navbar categories:', err);
+    }
+  };
+
+  const migrateImages = async () => {
+    try {
+      // Silently trigger migration endpoint to fix local image paths
+      await axios.patch('/api/upload');
+    } catch (err) {
+      console.log('Image migration check completed');
     }
   };
 
@@ -483,9 +512,13 @@ export default function ProductsPage() {
                 <div className="relative h-48 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center overflow-hidden">
                   {product.images && product.images.length > 0 ? (
                     <img
-                      src={product.images[0].url}
+                      src={getImageUrl(product.images[0].url, product.images[0].publicId)}
                       alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      onError={(e) => {
+                        // Fallback if image fails to load
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
                     />
                   ) : (
                     <FaBox className="w-16 h-16 text-slate-700" />
@@ -780,7 +813,7 @@ export default function ProductsPage() {
                       <div className="grid grid-cols-3 gap-4 mb-4">
                         {existingImages.map((img, index) => (
                           <div key={`existing-${index}`} className="relative rounded-xl overflow-hidden border-2 border-slate-700">
-                            <img src={img.url} alt="Existing" className="w-full h-32 object-cover" />
+                            <img src={getImageUrl(img.url, img.publicId)} alt="Existing" className="w-full h-32 object-cover" />
                             <button
                               type="button"
                               onClick={() => handleRemoveExistingImage(index)}

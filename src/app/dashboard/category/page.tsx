@@ -41,6 +41,25 @@ interface Category {
   updatedAt: string;
 }
 
+// Helper function to get proper image URL
+const getImageUrl = (image?: string, publicId?: string): string => {
+  if (!image) return '';
+  
+  // If it's already a full Cloudinary URL, return as-is
+  if (image.startsWith('https://res.cloudinary.com')) {
+    return image;
+  }
+  
+  // If it's a local path but we have publicId, reconstruct Cloudinary URL
+  if (publicId) {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'websitedata123';
+    return `https://res.cloudinary.com/${cloudName}/image/upload/${publicId}`;
+  }
+  
+  // Fallback to original image
+  return image;
+};
+
 export default function CategoryPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [navbarCategories, setNavbarCategories] = useState<NavbarCategory[]>([]);
@@ -67,6 +86,8 @@ export default function CategoryPage() {
 
   useEffect(() => {
     fetchNavbarCategories();
+    // Trigger migration on component mount
+    migrateImages();
   }, []);
 
   useEffect(() => {
@@ -91,6 +112,15 @@ export default function CategoryPage() {
       }
     } catch (err) {
       console.error('Error fetching navbar categories:', err);
+    }
+  };
+
+  const migrateImages = async () => {
+    try {
+      // Silently trigger migration endpoint to fix local image paths
+      await axios.patch('/api/upload');
+    } catch (err) {
+      console.log('Image migration check completed');
     }
   };
 
@@ -410,9 +440,13 @@ export default function CategoryPage() {
                 <div className="relative h-48 bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center overflow-hidden">
                   {category.image ? (
                     <img
-                      src={category.image}
+                      src={getImageUrl(category.image, category.imagePublicId)}
                       alt={category.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      onError={(e) => {
+                        // Fallback if image fails to load
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
                     />
                   ) : (
                     <FaLayerGroup className="w-16 h-16 text-slate-700" />
@@ -644,7 +678,7 @@ export default function CategoryPage() {
                     {(imagePreview || formData.image) && (
                       <div className="relative mb-4 rounded-xl overflow-hidden border-2 border-slate-700">
                         <img
-                          src={imagePreview || formData.image}
+                          src={imagePreview || getImageUrl(formData.image, formData.imagePublicId)}
                           alt="Preview"
                           className="w-full h-48 object-cover"
                         />

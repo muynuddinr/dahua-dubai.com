@@ -50,6 +50,25 @@ interface SubCategory {
   updatedAt: string;
 }
 
+// Helper function to get proper image URL
+const getImageUrl = (image?: string, publicId?: string): string => {
+  if (!image) return '';
+  
+  // If it's already a full Cloudinary URL, return as-is
+  if (image.startsWith('https://res.cloudinary.com')) {
+    return image;
+  }
+  
+  // If it's a local path but we have publicId, reconstruct Cloudinary URL
+  if (publicId) {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'websitedata123';
+    return `https://res.cloudinary.com/${cloudName}/image/upload/${publicId}`;
+  }
+  
+  // Fallback to original image
+  return image;
+};
+
 export default function SubCategoryPage() {
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [navbarCategories, setNavbarCategories] = useState<NavbarCategory[]>([]);
@@ -80,6 +99,7 @@ export default function SubCategoryPage() {
   useEffect(() => {
     fetchNavbarCategories();
     fetchCategories();
+    migrateImages();
   }, []);
 
   useEffect(() => {
@@ -118,6 +138,15 @@ export default function SubCategoryPage() {
       }
     } catch (err) {
       console.error('Error fetching navbar categories:', err);
+    }
+  };
+
+  const migrateImages = async () => {
+    try {
+      // Silently trigger migration endpoint to fix local image paths
+      await axios.patch('/api/upload');
+    } catch (err) {
+      console.log('Image migration check completed');
     }
   };
 
@@ -453,9 +482,13 @@ export default function SubCategoryPage() {
                 <div className="relative h-48 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center overflow-hidden">
                   {subCategory.image ? (
                     <img
-                      src={subCategory.image}
+                      src={getImageUrl(subCategory.image, subCategory.imagePublicId)}
                       alt={subCategory.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      onError={(e) => {
+                        // Fallback if image fails to load
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
                     />
                   ) : (
                     <FaBoxes className="w-16 h-16 text-slate-700" />
@@ -715,7 +748,7 @@ export default function SubCategoryPage() {
                     {(imagePreview || formData.image) && (
                       <div className="relative mb-4 rounded-xl overflow-hidden border-2 border-slate-700">
                         <img
-                          src={imagePreview || formData.image}
+                          src={imagePreview || getImageUrl(formData.image, formData.imagePublicId)}
                           alt="Preview"
                           className="w-full h-48 object-cover"
                         />
