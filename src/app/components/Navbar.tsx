@@ -166,17 +166,28 @@ const Navbar = ({
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
+      const targetElement = e.target as HTMLElement;
 
       // Check if click is on search button
-      const isSearchButton = (e.target as HTMLElement).closest(
+      const isSearchButton = targetElement.closest(
         'button[aria-label*="search" i]'
       );
 
-      // Only close search if clicking outside AND not on the search button
+      // Check if click is inside search container (mobile or desktop)
+      const isInsideSearchContainer = targetElement.closest(
+        '#search-bar-container-mobile, #search-bar-container'
+      );
+
+      // Check if click is on a search result
+      const isSearchResult = targetElement.closest('.search-result-item');
+
+      // Only close search if clicking outside AND not on the search button AND not inside search container
       if (
         searchRef.current &&
         !searchRef.current.contains(target) &&
-        !isSearchButton
+        !isSearchButton &&
+        !isInsideSearchContainer &&
+        !isSearchResult
       ) {
         setSearchOpen(false);
         setSearchQuery("");
@@ -616,7 +627,6 @@ const Navbar = ({
                                   </div>
                                   <div className="hidden lg:flex w-80 flex-col items-center justify-center">
                                     <div className="w-full h-64 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 flex items-center justify-center overflow-hidden shadow-inner">
-                                      {" "}
                                        <Image
                                         src={
                                           item.href === "/technologies"
@@ -626,8 +636,8 @@ const Navbar = ({
                                             : "/images/aboutus.png"
                                         }
                                         alt={item.label}
-                                        width={400} // increased width (320 → 400)
-                                        height={240} // increased height (192 → 240)
+                                        width={400}
+                                        height={240}
                                         className="object-cover transition-transform duration-500 hover:scale-105"
                                       />
                                     </div>
@@ -887,19 +897,7 @@ const Navbar = ({
                     className="p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
                     aria-label="Close search"
                   >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
+                   
                   </button>
                 </div>
               </div>
@@ -914,14 +912,15 @@ const Navbar = ({
                       </h3>
                       <div className="space-y-2 max-h-64 overflow-y-auto">
                         {searchResults.map((result) => (
-                          <ReloadLink
+                          <a
                             key={result._id}
                             href={`/product/${result.categoryId.slug}/${result.subcategoryId.slug}/${result.slug}`}
-                            className="group block p-3 rounded-lg hover:bg-gray-50 border border-gray-100"
-                            onClick={() => {
-                              setSearchQuery("");
-                              setSearchOpen(false);
-                              setSearchResults([]);
+                            className="search-result-item group block p-3 rounded-lg hover:bg-gray-50 border border-gray-100 cursor-pointer"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              const url = `/product/${result.categoryId.slug}/${result.subcategoryId.slug}/${result.slug}`;
+                              // Navigate to the page
+                              window.location.href = url;
                             }}
                           >
                             <div className="font-medium text-gray-900 group-hover:text-red-600 text-sm">
@@ -930,7 +929,7 @@ const Navbar = ({
                             <div className="text-xs text-gray-500 mt-1">
                               {result.categoryId.name}
                             </div>
-                          </ReloadLink>
+                          </a>
                         ))}
                       </div>
                     </div>
@@ -1025,7 +1024,21 @@ const Navbar = ({
                       }}
                       className="p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
                       aria-label="Close search"
-                    ></button>
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               </div>
