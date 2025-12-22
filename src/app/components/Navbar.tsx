@@ -412,9 +412,9 @@ const Navbar = ({
               <Image
                 src={logo?.url || "/images/dahualogo-removebg-preview.png"}
                 alt={logo?.alt || "Logo"}
-                width={150}
-                height={200}
-                className="h-12 object-contain"
+                width={180}
+                height={60}
+                className="h-22 sm:h-20 object-contain"
               />
             </Link>
 
