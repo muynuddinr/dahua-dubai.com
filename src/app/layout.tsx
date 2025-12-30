@@ -3,8 +3,8 @@ import Footer from "./components/Footer";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "../app/components/Navbar";
-import { defaultMetadata, organizationSchema } from '../utlis/seo';
-import favicon from '../../public/images/dahualogo-removebg-preview0.png';
+import { defaultMetadata, organizationSchema } from "../utlis/seo";
+import favicon from "../../public/images/dahualogo-removebg-preview0.png";
 import Whatsapp from "./components/Whatsapp";
 import ConditionalLayout from "./components/ConditionalLayout";
 
@@ -20,9 +20,12 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   ...defaultMetadata,
+  verification: {
+    google: "daPOuB2PbJcLil-F7dwDCUkIsKcjfFJi3fnprzXiftI",
+  },
   icons: {
-    icon: '/images/dahualogo-removebg-preview.png'
-  }
+    icon: "/images/dahualogo-removebg-preview.png",
+  },
 };
 
 export default function RootLayout({
@@ -34,12 +37,15 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="icon" href={favicon.src} />
+
+        {/* Organization Schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationSchema)
+            __html: JSON.stringify(organizationSchema),
           }}
         />
+
         {/* Meta Pixel Code */}
         <script>
           {`!function(f,b,e,v,n,t,s)
@@ -53,6 +59,7 @@ export default function RootLayout({
           fbq('init', '1526001348694133');
           fbq('track', 'PageView');`}
         </script>
+
         <noscript>
           <img
             height="1"
@@ -63,10 +70,9 @@ export default function RootLayout({
         </noscript>
         {/* End Meta Pixel Code */}
       </head>
+
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <ConditionalLayout>
-          {children}
-        </ConditionalLayout>
+        <ConditionalLayout>{children}</ConditionalLayout>
       </body>
     </html>
   );
