@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import NavbarCategory from '@/models/Navbar-category';
+import { checkAdminAuth } from '@/app/api/middleware/adminAuth';
 
 // GET - Fetch all navbar categories
 export async function GET() {
@@ -27,6 +28,12 @@ export async function GET() {
 
 // POST - Create new navbar category
 export async function POST(request: NextRequest) {
+  // Check admin authentication
+  const auth = checkAdminAuth(request);
+  if (!auth.isValid) {
+    return auth.error;
+  }
+
   try {
     await dbConnect();
     const body = await request.json();
@@ -88,6 +95,12 @@ export async function POST(request: NextRequest) {
 
 // PUT - Update navbar category
 export async function PUT(request: NextRequest) {
+  // Check admin authentication
+  const auth = checkAdminAuth(request);
+  if (!auth.isValid) {
+    return auth.error;
+  }
+
   try {
     await dbConnect();
     const body = await request.json();
@@ -164,6 +177,12 @@ export async function PUT(request: NextRequest) {
 
 // DELETE - Delete navbar category
 export async function DELETE(request: NextRequest) {
+  // Check admin authentication
+  const auth = checkAdminAuth(request);
+  if (!auth.isValid) {
+    return auth.error;
+  }
+
   try {
     await dbConnect();
     const { searchParams } = new URL(request.url);

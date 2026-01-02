@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Whatsapp from "./Whatsapp";
-import Snow from "./Snow";
+
 
 export default function ConditionalLayout({
   children,
@@ -21,7 +21,7 @@ export default function ConditionalLayout({
 
   return (
     <>
-    <Snow/>
+   
       <Navbar logo={{ url: "/images/dahualogo-removebg-preview0.png", alt: "Logo" }} />
       <Whatsapp />
       {children}

@@ -5,8 +5,15 @@ import Category from '@/models/Category';
 import NavbarCategory from '@/models/Navbar-category';
 import Product from '@/models/Product';
 import SubCategory from '@/models/SubCategory';
+import { checkAdminAuth } from '@/app/api/middleware/adminAuth';
 
 export async function POST(request: NextRequest) {
+  // Check admin authentication
+  const auth = checkAdminAuth(request);
+  if (!auth.isValid) {
+    return auth.error;
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -54,6 +61,12 @@ export async function POST(request: NextRequest) {
 
 // Migration endpoint to convert local image paths to Cloudinary URLs
 export async function PATCH(request: NextRequest) {
+  // Check admin authentication
+  const auth = checkAdminAuth(request);
+  if (!auth.isValid) {
+    return auth.error;
+  }
+
   try {
     await dbConnect();
     

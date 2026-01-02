@@ -2,9 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Contact from '@/models/Contact';
 import Product from '@/models/Product';
+import { checkAdminAuth } from '@/app/api/middleware/adminAuth';
 
-// GET - Fetch all product enquiries
+// GET - Fetch all product enquiries (admin only)
 export async function GET(request: NextRequest) {
+  // Check admin authentication
+  const auth = checkAdminAuth(request);
+  if (!auth.isValid) {
+    return auth.error;
+  }
+
   try {
     await dbConnect();
 
@@ -102,6 +109,12 @@ export async function POST(request: NextRequest) {
 
 // PUT - Update enquiry status
 export async function PUT(request: NextRequest) {
+  // Check admin authentication
+  const auth = checkAdminAuth(request);
+  if (!auth.isValid) {
+    return auth.error;
+  }
+
   try {
     await dbConnect();
 

@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import SubCategory from '@/models/SubCategory';
 import Category from '@/models/Category';
 import NavbarCategory from '@/models/Navbar-category';
+import { checkAdminAuth } from '@/app/api/middleware/adminAuth';
 
 // GET - Fetch all sub-categories
 export async function GET(request: NextRequest) {
@@ -37,6 +38,12 @@ export async function GET(request: NextRequest) {
 
 // POST - Create new sub-category
 export async function POST(request: NextRequest) {
+  // Check admin authentication
+  const auth = checkAdminAuth(request);
+  if (!auth.isValid) {
+    return auth.error;
+  }
+
   try {
     await dbConnect();
 
@@ -111,6 +118,12 @@ export async function POST(request: NextRequest) {
 
 // PUT - Update sub-category
 export async function PUT(request: NextRequest) {
+  // Check admin authentication
+  const auth = checkAdminAuth(request);
+  if (!auth.isValid) {
+    return auth.error;
+  }
+
   try {
     await dbConnect();
 
@@ -179,6 +192,12 @@ export async function PUT(request: NextRequest) {
 
 // DELETE - Delete sub-category
 export async function DELETE(request: NextRequest) {
+  // Check admin authentication
+  const auth = checkAdminAuth(request);
+  if (!auth.isValid) {
+    return auth.error;
+  }
+
   try {
     await dbConnect();
 

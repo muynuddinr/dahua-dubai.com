@@ -4,6 +4,7 @@ import Product from '@/models/Product';
 import SubCategory from '@/models/SubCategory';
 import Category from '@/models/Category';
 import NavbarCategory from '@/models/Navbar-category';
+import { checkAdminAuth } from '@/app/api/middleware/adminAuth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -48,6 +49,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  // Check admin authentication
+  const auth = checkAdminAuth(request);
+  if (!auth.isValid) {
+    return auth.error;
+  }
+
   try {
     await connectDB();
 
@@ -158,6 +165,12 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  // Check admin authentication
+  const auth = checkAdminAuth(request);
+  if (!auth.isValid) {
+    return auth.error;
+  }
+
   try {
     await connectDB();
 
@@ -228,6 +241,12 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  // Check admin authentication
+  const auth = checkAdminAuth(request);
+  if (!auth.isValid) {
+    return auth.error;
+  }
+
   try {
     await connectDB();
 
