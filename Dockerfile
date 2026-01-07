@@ -41,7 +41,7 @@ RUN apk add --no-cache dumb-init
 # Set production environment
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3000
+ENV PORT=8088
 ENV HOSTNAME="0.0.0.0"
 
 # Create non-root user for security
@@ -63,12 +63,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
 
 # Expose port
-EXPOSE 3000
+EXPOSE 8088
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => { if (r.statusCode !== 200) throw new Error(); }).on('error', () => { throw new Error(); })"
-
+  CMD node -e "require('http').get('http://localhost:8088/api/health', (r) => { if (r.statusCode !== 200) throw new Error(); }).on('error', () => { throw new Error(); })"
 # Use dumb-init as entrypoint
 ENTRYPOINT ["dumb-init", "--"]
 
