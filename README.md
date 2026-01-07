@@ -52,9 +52,9 @@ A modern, full-stack e-commerce website for Dahua security products built with N
 
 1. **Set up production environment**
    ```bash
-   cp .env.example .env.production
+   cp .env.example .env.local
    ```
-   Edit `.env.production` with your production credentials.
+   Edit `.env.local` with your production credentials.
 
 2. **Build and run with Docker Compose**
    ```bash
