@@ -34,12 +34,6 @@ interface Category {
   description?: string;
   image?: string;
   order: number;
-  navbarCategoryId: {
-    _id: string;
-    name: string;
-    slug: string;
-    href: string;
-  };
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -438,10 +432,10 @@ export default function ProductPageClient({
             </Link>
             <FaChevronRight className="w-1 h-1 sm:w-1.5 sm:h-1.5 text-slate-400 flex-shrink-0" />
             <Link
-              href={category.navbarCategoryId.href}
+              href="/products"
               className="text-slate-600 hover:text-red-400 transition-colors whitespace-nowrap flex-shrink-0"
             >
-              {category.navbarCategoryId.name}
+              Products
             </Link>
             <FaChevronRight className="w-1 h-1 sm:w-1.5 sm:h-1.5 text-slate-400 flex-shrink-0" />
             <span className="text-red-500 font-semibold">{category.name}</span>

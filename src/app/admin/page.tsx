@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -33,12 +35,22 @@ export default function AdminLogin() {
       // Store the token
       localStorage.setItem('adminToken', data.token);
       
-      console.log('Login successful, redirecting to dashboard...');
+      toast.success('Login successful! Redirecting...', {
+        position: 'top-right',
+        autoClose: 2000,
+      });
       
       // Force a hard navigation to ensure clean state
-      window.location.href = '/admin/dashboard';
+      setTimeout(() => {
+        window.location.href = '/admin/dashboard';
+      }, 1000);
     } catch (err: any) {
-      setError(err.message || 'Failed to login');
+      const errorMessage = err.message || 'Failed to login';
+      setError(errorMessage);
+      toast.error(errorMessage, {
+        position: 'top-right',
+        autoClose: 4000,
+      });
     } finally {
       setLoading(false);
     }
@@ -46,6 +58,18 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>

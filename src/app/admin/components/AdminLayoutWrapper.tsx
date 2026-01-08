@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
@@ -59,8 +61,14 @@ export default function AdminLayoutWrapper({ children }: AdminLayoutWrapperProps
   };
 
   const handleLogout = async () => {
+    toast.success('Logged out successfully!', {
+      position: 'top-right',
+      autoClose: 2000,
+    });
     localStorage.removeItem('adminToken');
-    router.push('/admin');
+    setTimeout(() => {
+      router.push('/admin');
+    }, 500);
   };
 
   // Show login page without sidebar
@@ -85,6 +93,18 @@ export default function AdminLayoutWrapper({ children }: AdminLayoutWrapperProps
 
   return (
     <div className="min-h-screen bg-black">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
       <Sidebar user={user} onLogout={handleLogout} />
       <Header user={user} onLogout={handleLogout} />
       <main className="lg:ml-72 pt-16 min-h-screen">

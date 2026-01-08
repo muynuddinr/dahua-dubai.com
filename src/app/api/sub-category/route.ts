@@ -11,10 +11,7 @@ export async function GET(request: NextRequest) {
       .from('sub_categories')
       .select(`
         *,
-        category:categories(
-          id, name, slug,
-          navbar_category:navbar_categories(id, name, slug, href)
-        )
+        category:categories(id, name, slug)
       `)
       .eq('is_active', true)
       .order('order', { ascending: true });
@@ -42,19 +39,7 @@ export async function GET(request: NextRequest) {
       categoryId: item.category ? {
         _id: item.category.id,
         name: item.category.name,
-        slug: item.category.slug,
-        navbarCategoryId: item.category.navbar_category ? {
-          _id: item.category.navbar_category.id,
-          name: item.category.navbar_category.name,
-          slug: item.category.navbar_category.slug,
-          href: item.category.navbar_category.href
-        } : null
-      } : null,
-      navbarCategoryId: item.category?.navbar_category ? {
-        _id: item.category.navbar_category.id,
-        name: item.category.navbar_category.name,
-        slug: item.category.navbar_category.slug,
-        href: item.category.navbar_category.href
+        slug: item.category.slug
       } : null
     })) || [];
 

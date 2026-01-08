@@ -19,12 +19,6 @@ interface Category {
   description?: string;
   image?: string;
   order: number;
-  navbarCategoryId: {
-    _id: string;
-    name: string;
-    slug: string;
-    href: string;
-  };
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

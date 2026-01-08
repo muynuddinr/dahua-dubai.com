@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { SubCategory, Category, NavbarCategory } from '@/lib/supabase';
+import { SubCategory, Category } from '@/lib/supabase';
 import Image from 'next/image';
+import { toast } from 'react-toastify';
 
 export default function SubCategoryPage() {
   const [subCategories, setSubCategories] = useState<any[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [navbarCategories, setNavbarCategories] = useState<NavbarCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubCategory, setEditingSubCategory] = useState<SubCategory | null>(null);
@@ -20,13 +20,11 @@ export default function SubCategoryPage() {
     slug: '',
     description: '',
     category_id: '',
-    navbar_category_id: '',
     is_active: true,
     image: '',
   });
   const [saving, setSaving] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
-  const [selectedNavbarCategory, setSelectedNavbarCategory] = useState<string>('');
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -35,19 +33,16 @@ export default function SubCategoryPage() {
 
   const fetchData = async () => {
     try {
-      const [subCatRes, catRes, navbarRes] = await Promise.all([
-        supabase.from('sub_categories').select('*, categories(*), navbar_categories(*)').order('order', { ascending: true }),
+      const [subCatRes, catRes] = await Promise.all([
+        supabase.from('sub_categories').select('*, categories(*)').order('created_at', { ascending: false }),
         supabase.from('categories').select('*').eq('is_active', true).order('name', { ascending: true }),
-        supabase.from('navbar_categories').select('*').eq('is_active', true).order('order', { ascending: true }),
       ]);
 
       if (subCatRes.error) throw subCatRes.error;
       if (catRes.error) throw catRes.error;
-      if (navbarRes.error) throw navbarRes.error;
 
       setSubCategories(subCatRes.data || []);
       setCategories(catRes.data || []);
-      setNavbarCategories(navbarRes.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -64,24 +59,10 @@ export default function SubCategoryPage() {
     setFormData({ ...formData, name, slug: generateSlug(name) });
   };
 
-  const handleNavbarCategoryChange = (navbarCategoryId: string) => {
-    setSelectedNavbarCategory(navbarCategoryId);
-    setFormData({ ...formData, navbar_category_id: navbarCategoryId, category_id: '' });
-  };
-
-  const filteredCategoriesForModal = categories.filter(
-    (cat) => cat.navbar_category_id === (selectedNavbarCategory || formData.navbar_category_id)
-  );
-
-  // Refresh dropdown data to get latest categories and navbar categories
   const refreshDropdowns = async () => {
     try {
-      const [catRes, navbarRes] = await Promise.all([
-        supabase.from('categories').select('*').eq('is_active', true).order('name', { ascending: true }),
-        supabase.from('navbar_categories').select('*').eq('is_active', true).order('order', { ascending: true }),
-      ]);
+      const catRes = await supabase.from('categories').select('*').eq('is_active', true).order('name', { ascending: true });
       if (!catRes.error) setCategories(catRes.data || []);
-      if (!navbarRes.error) setNavbarCategories(navbarRes.data || []);
     } catch (error) {
       console.error('Error refreshing dropdowns:', error);
     }
@@ -91,26 +72,22 @@ export default function SubCategoryPage() {
     await refreshDropdowns();
     if (subCategory) {
       setEditingSubCategory(subCategory);
-      setSelectedNavbarCategory(subCategory.navbar_category_id);
       setFormData({
         name: subCategory.name,
         slug: subCategory.slug,
         description: subCategory.description || '',
         category_id: subCategory.category_id,
-        navbar_category_id: subCategory.navbar_category_id,
         is_active: subCategory.is_active,
         image: subCategory.image || '',
       });
       setImagePreview(subCategory.image || '');
     } else {
       setEditingSubCategory(null);
-      setSelectedNavbarCategory('');
       setFormData({
         name: '',
         slug: '',
         description: '',
         category_id: '',
-        navbar_category_id: '',
         is_active: true,
         image: '',
       });
@@ -123,7 +100,6 @@ export default function SubCategoryPage() {
     setIsModalOpen(false);
     setEditingSubCategory(null);
     setImagePreview('');
-    setSelectedNavbarCategory('');
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -151,10 +127,11 @@ export default function SubCategoryPage() {
       if (result.success) {
         setFormData(prev => ({ ...prev, image: result.data.url }));
         setImagePreview(result.data.url);
+        toast.success('Image uploaded successfully!');
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Error uploading image');
+      toast.error('Error uploading image');
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -177,7 +154,6 @@ export default function SubCategoryPage() {
         slug: formData.slug,
         description: formData.description || null,
         category_id: formData.category_id,
-        navbar_category_id: formData.navbar_category_id,
         is_active: formData.is_active,
         image: formData.image || null,
       };
@@ -193,6 +169,7 @@ export default function SubCategoryPage() {
         });
         const result = await response.json();
         if (!result.success) throw new Error(result.message || 'Update failed');
+        toast.success('Sub-category updated successfully!');
       } else {
         const response = await fetch('/api/admin/sub-categories', {
           method: 'POST',
@@ -204,13 +181,14 @@ export default function SubCategoryPage() {
         });
         const result = await response.json();
         if (!result.success) throw new Error(result.message || 'Create failed');
+        toast.success('Sub-category created successfully!');
       }
 
       await fetchData();
       closeModal();
     } catch (error) {
       console.error('Error saving sub-category:', error);
-      alert('Error saving sub-category: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      toast.error('Error saving sub-category: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setSaving(false);
     }
@@ -229,10 +207,11 @@ export default function SubCategoryPage() {
       });
       const result = await response.json();
       if (!result.success) throw new Error(result.message || 'Delete failed');
+      toast.success('Sub-category deleted successfully!');
       await fetchData();
     } catch (error) {
       console.error('Error deleting sub-category:', error);
-      alert('Error deleting sub-category: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      toast.error('Error deleting sub-category: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
@@ -326,7 +305,6 @@ export default function SubCategoryPage() {
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Name</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Slug</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Order</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-4 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Actions</th>
                 </tr>
@@ -357,9 +335,6 @@ export default function SubCategoryPage() {
                       <span className="px-2 py-1 bg-violet-500/10 text-violet-400 rounded text-xs">
                         {subCategory.categories?.name || 'N/A'}
                       </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-gray-400">#{subCategory.order}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -445,31 +420,15 @@ export default function SubCategoryPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Navbar Category</label>
-                <select
-                  value={formData.navbar_category_id}
-                  onChange={(e) => handleNavbarCategoryChange(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-pink-500"
-                  required
-                >
-                  <option value="">Select navbar category</option>
-                  {navbarCategories.map((nc) => (
-                    <option key={nc.id} value={nc.id}>{nc.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Category</label>
                 <select
                   value={formData.category_id}
                   onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
                   className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-pink-500"
                   required
-                  disabled={!formData.navbar_category_id}
                 >
                   <option value="">Select category</option>
-                  {filteredCategoriesForModal.map((cat) => (
+                  {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
                 </select>

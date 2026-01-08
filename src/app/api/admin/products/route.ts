@@ -47,15 +47,14 @@ export async function POST(request: NextRequest) {
       is_active, 
       subcategory_id,
       category_id,
-      navbar_category_id,
     } = body;
 
     if (!name || !slug) {
       return errorResponse('Name and slug are required', 400);
     }
 
-    if (!subcategory_id || !category_id || !navbar_category_id) {
-      return errorResponse('Subcategory, Category, and Navbar Category IDs are required', 400);
+    if (!subcategory_id || !category_id) {
+      return errorResponse('Subcategory and Category IDs are required', 400);
     }
 
     const { data, error } = await supabaseAdmin
@@ -69,7 +68,6 @@ export async function POST(request: NextRequest) {
         is_active: is_active ?? true,
         subcategory_id,
         category_id,
-        navbar_category_id,
       }])
       .select()
       .single();
@@ -103,7 +101,6 @@ export async function PUT(request: NextRequest) {
       is_active, 
       subcategory_id,
       category_id,
-      navbar_category_id,
     } = body;
 
     if (!id) {
@@ -121,7 +118,6 @@ export async function PUT(request: NextRequest) {
         is_active,
         subcategory_id,
         category_id,
-        navbar_category_id,
       })
       .eq('id', id)
       .select()

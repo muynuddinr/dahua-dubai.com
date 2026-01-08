@@ -2,30 +2,6 @@ import { MetadataRoute } from "next";
 
 const baseUrl = "https://dahua-dubai.com";
 
-async function getNavbarCategories() {
-  try {
-    const response = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
-      }/api/navbar-category`,
-      {
-        headers: {
-          "Cache-Control": "no-cache",
-        },
-      }
-    );
-
-    if (response.ok) {
-      const data = await response.json();
-      return data.success ? data.data : [];
-    }
-    return [];
-  } catch (error) {
-    console.error("Error fetching navbar categories:", error);
-    return [];
-  }
-}
-
 async function getCategories() {
   try {
     const response = await fetch(
@@ -100,9 +76,8 @@ async function getProducts() {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
-    const [navbarCategories, categories, subCategories, products] =
+    const [categories, subCategories, products] =
       await Promise.all([
-        getNavbarCategories(),
         getCategories(),
         getSubCategories(),
         getProducts(),
@@ -216,42 +191,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       
     ];
 
-    // NavbarCategory routes: /products/:navbarSlug
-    const navbarRoutes: MetadataRoute.Sitemap = navbarCategories.map((nav: any) => ({
-      url: `${baseUrl}/products/${nav.slug}`,
-      lastModified: new Date().toISOString(),
-      changeFrequency: "weekly" as const,
-      priority: 0.85,
-    }));
-
-    // Category routes: /products/:slug
+    // Category routes: /product/:slug
     const categoryRoutes: MetadataRoute.Sitemap = categories
       .filter((cat: any) => cat.slug)
       .map((cat: any) => ({
-        url: `${baseUrl}/products/${cat.slug}`,
+        url: `${baseUrl}/product/${cat.slug}`,
         lastModified: new Date(cat.updatedAt || cat.createdAt).toISOString(),
         changeFrequency: "weekly" as const,
         priority: 0.8,
       }));
 
-    // SubCategory routes: /products/:slug/:subSlug
+    // SubCategory routes: /product/:slug/:subSlug
     const subCategoryRoutes: MetadataRoute.Sitemap = subCategories
       .filter((sub: any) => sub.slug && sub.categoryId?.slug)
       .map((sub: any) => ({
-        url: `${baseUrl}/products/${sub.categoryId.slug}/${sub.slug}`,
+        url: `${baseUrl}/product/${sub.categoryId.slug}/${sub.slug}`,
         lastModified: new Date(sub.updatedAt || sub.createdAt).toISOString(),
         changeFrequency: "weekly" as const,
         priority: 0.75,
       }));
 
-    // Product routes: /products/:slug/:subSlug/:productSlug
+    // Product routes: /product/:slug/:subSlug/:productSlug
     const productRoutes: MetadataRoute.Sitemap = products
       .filter(
         (prod: any) =>
           prod.slug && prod.categoryId?.slug && prod.subcategoryId?.slug
       )
       .map((prod: any) => ({
-        url: `${baseUrl}/products/${prod.categoryId.slug}/${prod.subcategoryId.slug}/${prod.slug}`,
+        url: `${baseUrl}/product/${prod.categoryId.slug}/${prod.subcategoryId.slug}/${prod.slug}`,
         lastModified: new Date(prod.updatedAt || prod.createdAt).toISOString(),
         changeFrequency: "monthly" as const,
         priority: 0.7,
@@ -259,7 +226,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     return [
       ...staticRoutes,
-      ...navbarRoutes,
       ...categoryRoutes,
       ...subCategoryRoutes,
       ...productRoutes,

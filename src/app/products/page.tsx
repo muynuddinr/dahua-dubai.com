@@ -2,20 +2,12 @@ import { Metadata } from "next";
 import axios from 'axios';
 import { ProductsClient } from './ProductsClient';
 
-interface NavbarCategory {
-  _id: string;
-  name: string;
-  slug: string;
-  href: string;
-}
-
 interface Category {
   _id: string;
   name: string;
   slug: string;
   description?: string;
   image?: string;
-  navbarCategoryId: NavbarCategory;
   isActive: boolean;
   order: number;
   createdAt: string;
@@ -46,32 +38,6 @@ async function getCategories(): Promise<Category[]> {
     return [];
   } catch (err) {
     console.error('Error fetching categories:', err);
-    return [];
-  }
-}
-
-async function getNavbarCategories(): Promise<NavbarCategory[]> {
-  try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
-    
-    if (!apiUrl) {
-      console.error('NEXT_PUBLIC_API_URL is not set in production');
-      return [];
-    }
-
-    const response = await axios.get(`${apiUrl}/api/navbar-category`, {
-      headers: {
-        'Cache-Control': 'no-cache',
-      },
-      timeout: 10000,
-    });
-    
-    if (response.data.success && Array.isArray(response.data.data)) {
-      return response.data.data;
-    }
-    return [];
-  } catch (err) {
-    console.error('Error fetching navbar categories:', err);
     return [];
   }
 }
@@ -115,15 +81,9 @@ export const metadata: Metadata = {
 };
 
 export default async function ProductsPage() {
-  const [categories, navbarCategories] = await Promise.all([
-    getCategories(),
-    getNavbarCategories(),
-  ]);
+  const categories = await getCategories();
 
   return (
-    <ProductsClient 
-      initialCategories={categories} 
-      navbarCategories={navbarCategories} 
-    />
+    <ProductsClient initialCategories={categories} />
   );
 }

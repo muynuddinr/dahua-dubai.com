@@ -5,7 +5,6 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
 interface Stats {
-  navbarCategories: number;
   categories: number;
   subCategories: number;
   products: number;
@@ -15,7 +14,6 @@ interface Stats {
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats>({
-    navbarCategories: 0,
     categories: 0,
     subCategories: 0,
     products: 0,
@@ -30,8 +28,7 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const [navbarCategories, categories, subCategories, products, contacts] = await Promise.all([
-        supabase.from('navbar_categories').select('*', { count: 'exact', head: true }),
+      const [categories, subCategories, products, contacts] = await Promise.all([
         supabase.from('categories').select('*', { count: 'exact', head: true }),
         supabase.from('sub_categories').select('*', { count: 'exact', head: true }),
         supabase.from('products').select('*', { count: 'exact', head: true }),
@@ -42,7 +39,6 @@ export default function AdminDashboard() {
       const contactEnquiries = contacts.data?.filter((c) => c.enquiry_type === 'general' || !c.enquiry_type).length || 0;
 
       setStats({
-        navbarCategories: navbarCategories.count || 0,
         categories: categories.count || 0,
         subCategories: subCategories.count || 0,
         products: products.count || 0,
@@ -57,16 +53,6 @@ export default function AdminDashboard() {
   };
 
   const statCards = [
-    {
-      title: 'Navbar Categories',
-      value: stats.navbarCategories,
-      href: '/admin/navbar-category',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-        </svg>
-      ),
-    },
     {
       title: 'Categories',
       value: stats.categories,

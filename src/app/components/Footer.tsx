@@ -25,21 +25,11 @@ interface Product {
   updatedAt: string;
 }
 
-interface NavbarCategory {
-  _id: string;
-  name: string;
-  slug?: string;
-  href?: string;
-  order?: number;
-  isActive?: boolean;
-}
-
 interface Category {
   _id: string;
   name: string;
   slug: string;
   description?: string;
-  navbarCategoryId?: { _id: string; name: string } | string;
   isActive?: boolean;
   order?: number;
 }

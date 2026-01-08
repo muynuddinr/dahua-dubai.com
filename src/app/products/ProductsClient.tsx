@@ -7,20 +7,12 @@ import Image from "next/image";
 import { FaChevronRight, FaHome, FaBox, FaFolder } from "react-icons/fa";
 import { useInView } from "react-intersection-observer";
 
-interface NavbarCategory {
-  _id: string;
-  name: string;
-  slug: string;
-  href: string;
-}
-
 interface Category {
   _id: string;
   name: string;
   slug: string;
   description?: string;
   image?: string;
-  navbarCategoryId: NavbarCategory;
   isActive: boolean;
   order: number;
   createdAt: string;
@@ -28,7 +20,6 @@ interface Category {
 
 interface ProductsClientProps {
   initialCategories: Category[];
-  navbarCategories: NavbarCategory[];
 }
 
 // Animation variants
@@ -125,12 +116,10 @@ const ProductShowcase = ({
   item,
   index,
   href,
-  getNavbarCategoryName,
 }: {
   item: Category;
   index: number;
   href: string;
-  getNavbarCategoryName: (navbarCategoryId: NavbarCategory | string) => string;
 }) => {
   const [ref, inView] = useInView({
     triggerOnce: true,
@@ -236,7 +225,6 @@ const ProductShowcase = ({
 
 export function ProductsClient({
   initialCategories,
-  navbarCategories,
 }: ProductsClientProps) {
   const [scrollY, setScrollY] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -260,14 +248,6 @@ export function ProductsClient({
     title: "Our Products",
     subtitle: "Industrial Solutions",
     description: "Carefully engineered solutions for industrial needs — browse our complete collection.",
-  };
-
-  const getNavbarCategoryName = (navbarCategoryId: NavbarCategory | string) => {
-    if (typeof navbarCategoryId === "object") {
-      return navbarCategoryId.name;
-    }
-    const found = navbarCategories.find((nc) => nc._id === navbarCategoryId);
-    return found ? found.name : "Unknown";
   };
 
   return (
@@ -473,7 +453,6 @@ export function ProductsClient({
                   item={category}
                   index={index}
                   href={`/product/${category.slug}`}
-                  getNavbarCategoryName={getNavbarCategoryName}
                 />
               ))}
             </motion.div>

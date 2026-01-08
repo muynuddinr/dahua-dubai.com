@@ -4,23 +4,11 @@ import { supabaseAdmin } from '@/lib/supabase';
 // Public API - No auth required
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const navbarCategoryId = searchParams.get('navbarCategoryId');
-
-    let query = supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from('categories')
-      .select(`
-        *,
-        navbar_category:navbar_categories(id, name, slug, href)
-      `)
+      .select('*')
       .eq('is_active', true)
       .order('order', { ascending: true });
-
-    if (navbarCategoryId) {
-      query = query.eq('navbar_category_id', navbarCategoryId);
-    }
-
-    const { data, error } = await query;
 
     if (error) throw error;
 
@@ -32,13 +20,7 @@ export async function GET(request: NextRequest) {
       description: item.description,
       image: item.image,
       order: item.order,
-      isActive: item.is_active,
-      navbarCategoryId: item.navbar_category ? {
-        _id: item.navbar_category.id,
-        name: item.navbar_category.name,
-        slug: item.navbar_category.slug,
-        href: item.navbar_category.href
-      } : null
+      isActive: item.is_active
     })) || [];
 
     return NextResponse.json({ success: true, data: transformedData });

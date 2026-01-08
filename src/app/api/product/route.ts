@@ -14,11 +14,7 @@ export async function GET(request: NextRequest) {
         *,
         sub_category:sub_categories!subcategory_id(
           id, name, slug,
-          category:categories(
-            id, name, slug,
-            navbar_category:navbar_categories(id, name, slug, href)
-          ),
-          navbar_category:navbar_categories(id, name, slug, href)
+          category:categories(id, name, slug)
         )
       `)
       .eq('is_active', true)
@@ -38,8 +34,6 @@ export async function GET(request: NextRequest) {
 
     // Transform to match frontend expected format
     const transformedData = data?.map(item => {
-      const navbarCategory = item.sub_category?.navbar_category || item.sub_category?.category?.navbar_category;
-      
       return {
         _id: item.id,
         name: item.name,
@@ -61,13 +55,7 @@ export async function GET(request: NextRequest) {
         categoryId: item.sub_category?.category ? {
           _id: item.sub_category.category.id,
           name: item.sub_category.category.name,
-          slug: item.sub_category.category.slug,
-          navbarCategoryId: item.sub_category.category.navbar_category ? {
-            _id: item.sub_category.category.navbar_category.id,
-            name: item.sub_category.category.navbar_category.name,
-            slug: item.sub_category.category.navbar_category.slug,
-            href: item.sub_category.category.navbar_category.href
-          } : null
+          slug: item.sub_category.category.slug
         } : null,
         subcategoryId: item.sub_category ? {
           _id: item.sub_category.id,
@@ -77,19 +65,7 @@ export async function GET(request: NextRequest) {
             _id: item.sub_category.category.id,
             name: item.sub_category.category.name,
             slug: item.sub_category.category.slug
-          } : null,
-          navbarCategoryId: navbarCategory ? {
-            _id: navbarCategory.id,
-            name: navbarCategory.name,
-            slug: navbarCategory.slug,
-            href: navbarCategory.href
           } : null
-        } : null,
-        navbarCategoryId: navbarCategory ? {
-          _id: navbarCategory.id,
-          name: navbarCategory.name,
-          slug: navbarCategory.slug,
-          href: navbarCategory.href
         } : null
       };
     }) || [];

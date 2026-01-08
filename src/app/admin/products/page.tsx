@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Product, SubCategory, Category, NavbarCategory } from '@/lib/supabase';
+import { Product, SubCategory, Category } from '@/lib/supabase';
 import Image from 'next/image';
+import { toast } from 'react-toastify';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [navbarCategories, setNavbarCategories] = useState<NavbarCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -25,11 +25,9 @@ export default function ProductsPage() {
     images: [] as { url: string; publicId: string }[],
     subcategory_id: '',
     category_id: '',
-    navbar_category_id: '',
     is_active: true,
   });
   const [saving, setSaving] = useState(false);
-  const [selectedNavbarCategory, setSelectedNavbarCategory] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [featuresText, setFeaturesText] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -40,18 +38,16 @@ export default function ProductsPage() {
 
   const fetchData = async () => {
     try {
-      const [productsRes, subCatRes, catRes, navbarRes] = await Promise.all([
-        supabase.from('products').select('*, sub_categories(*), categories(*), navbar_categories(*)').order('created_at', { ascending: false }),
+      const [productsRes, subCatRes, catRes] = await Promise.all([
+        supabase.from('products').select('*, sub_categories(*), categories(*)').order('created_at', { ascending: false }),
         supabase.from('sub_categories').select('*').eq('is_active', true).order('name'),
         supabase.from('categories').select('*').eq('is_active', true).order('name'),
-        supabase.from('navbar_categories').select('*').eq('is_active', true).order('order'),
       ]);
 
       if (productsRes.error) throw productsRes.error;
       setProducts(productsRes.data || []);
       setSubCategories(subCatRes.data || []);
       setCategories(catRes.data || []);
-      setNavbarCategories(navbarRes.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -68,28 +64,24 @@ export default function ProductsPage() {
     setFormData({ ...formData, name, slug: generateSlug(name) });
   };
 
-  const handleNavbarCategoryChange = (navbarCategoryId: string) => {
-    setSelectedNavbarCategory(navbarCategoryId);
-    setSelectedCategory('');
-    setFormData({ ...formData, navbar_category_id: navbarCategoryId, category_id: '', subcategory_id: '' });
-  };
-
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
     setFormData({ ...formData, category_id: categoryId, subcategory_id: '' });
   };
 
-  const filteredCategoriesForModal = categories.filter((cat) => cat.navbar_category_id === selectedNavbarCategory);
   const filteredSubCategoriesForModal = subCategories.filter((sub) => sub.category_id === selectedCategory);
 
   const addFeatures = () => {
     if (featuresText.trim()) {
-      const newFeatures = featuresText
-        .split('\n')
-        .map(f => f.trim())
-        .filter(f => f.length > 0);
-      setFormData({ ...formData, key_features: [...formData.key_features, ...newFeatures] });
+      setFormData({ ...formData, key_features: [...formData.key_features, featuresText.trim()] });
       setFeaturesText('');
+    }
+  };
+
+  const handleFeatureKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addFeatures();
     }
   };
 
@@ -127,9 +119,10 @@ export default function ProductsPage() {
           }));
         }
       }
+      toast.success('Image(s) uploaded successfully!');
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Error uploading image');
+      toast.error('Error uploading image');
     } finally {
       setUploading(false);
       // Reset the file input
@@ -144,14 +137,12 @@ export default function ProductsPage() {
   // Refresh dropdown data to get latest categories and subcategories
   const refreshDropdowns = async () => {
     try {
-      const [subCatRes, catRes, navbarRes] = await Promise.all([
+      const [subCatRes, catRes] = await Promise.all([
         supabase.from('sub_categories').select('*').eq('is_active', true).order('name'),
         supabase.from('categories').select('*').eq('is_active', true).order('name'),
-        supabase.from('navbar_categories').select('*').eq('is_active', true).order('order'),
       ]);
       if (!subCatRes.error) setSubCategories(subCatRes.data || []);
       if (!catRes.error) setCategories(catRes.data || []);
-      if (!navbarRes.error) setNavbarCategories(navbarRes.data || []);
     } catch (error) {
       console.error('Error refreshing dropdowns:', error);
     }
@@ -162,7 +153,6 @@ export default function ProductsPage() {
     await refreshDropdowns();
     if (product) {
       setEditingProduct(product);
-      setSelectedNavbarCategory(product.navbar_category_id);
       setSelectedCategory(product.category_id);
       setFormData({
         name: product.name,
@@ -172,12 +162,10 @@ export default function ProductsPage() {
         images: product.images || [],
         subcategory_id: product.subcategory_id,
         category_id: product.category_id,
-        navbar_category_id: product.navbar_category_id,
         is_active: product.is_active,
       });
     } else {
       setEditingProduct(null);
-      setSelectedNavbarCategory('');
       setSelectedCategory('');
       setFormData({
         name: '',
@@ -187,7 +175,6 @@ export default function ProductsPage() {
         images: [],
         subcategory_id: '',
         category_id: '',
-        navbar_category_id: '',
         is_active: true,
       });
     }
@@ -197,7 +184,6 @@ export default function ProductsPage() {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingProduct(null);
-    setSelectedNavbarCategory('');
     setSelectedCategory('');
     setFeaturesText('');
   };
@@ -215,7 +201,6 @@ export default function ProductsPage() {
         images: formData.images,
         subcategory_id: formData.subcategory_id,
         category_id: formData.category_id,
-        navbar_category_id: formData.navbar_category_id,
         is_active: formData.is_active,
       };
 
@@ -233,6 +218,7 @@ export default function ProductsPage() {
         });
         const result = await response.json();
         if (!result.success) throw new Error(result.message || 'Update failed');
+        toast.success('Product updated successfully!');
       } else {
         // Use API route for insert (bypasses RLS with service role)
         const token = localStorage.getItem('adminToken');
@@ -247,13 +233,14 @@ export default function ProductsPage() {
         });
         const result = await response.json();
         if (!result.success) throw new Error(result.message || 'Create failed');
+        toast.success('Product created successfully!');
       }
 
       await fetchData();
       closeModal();
     } catch (error) {
       console.error('Error saving product:', error);
-      alert('Error saving product: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      toast.error('Error saving product: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setSaving(false);
     }
@@ -274,10 +261,11 @@ export default function ProductsPage() {
       });
       const result = await response.json();
       if (!result.success) throw new Error(result.message || 'Delete failed');
+      toast.success('Product deleted successfully!');
       await fetchData();
     } catch (error) {
       console.error('Error deleting product:', error);
-      alert('Error deleting product: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      toast.error('Error deleting product: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
@@ -507,21 +495,7 @@ export default function ProductsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Navbar Category</label>
-                  <select
-                    value={formData.navbar_category_id}
-                    onChange={(e) => handleNavbarCategoryChange(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-pink-500"
-                    required
-                  >
-                    <option value="">Select</option>
-                    {navbarCategories.map((nc) => (
-                      <option key={nc.id} value={nc.id}>{nc.name}</option>
-                    ))}
-                  </select>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">Category</label>
                   <select
@@ -529,10 +503,9 @@ export default function ProductsPage() {
                     onChange={(e) => handleCategoryChange(e.target.value)}
                     className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-pink-500"
                     required
-                    disabled={!selectedNavbarCategory}
                   >
-                    <option value="">Select</option>
-                    {filteredCategoriesForModal.map((cat) => (
+                    <option value="">Select Category</option>
+                    {categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
                   </select>
@@ -546,7 +519,7 @@ export default function ProductsPage() {
                     required
                     disabled={!selectedCategory}
                   >
-                    <option value="">Select</option>
+                    <option value="">Select Sub Category</option>
                     {filteredSubCategoriesForModal.map((sub) => (
                       <option key={sub.id} value={sub.id}>{sub.name}</option>
                     ))}
@@ -567,29 +540,41 @@ export default function ProductsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Key Features</label>
-                <div className="flex gap-2 mb-2">
-                  <textarea
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="text"
                     value={featuresText}
                     onChange={(e) => setFeaturesText(e.target.value)}
-                    className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-pink-500 min-h-[100px]"
-                    placeholder="Paste features here (one per line)"
+                    onKeyDown={handleFeatureKeyDown}
+                    className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-pink-500"
+                    placeholder="Type a feature and press Enter or click Add"
                   />
-                  <button type="button" onClick={addFeatures} className="px-4 py-2 bg-pink-500/20 text-pink-400 rounded-lg hover:bg-pink-500/30 transition-colors self-start">
+                  <button 
+                    type="button" 
+                    onClick={addFeatures} 
+                    className="px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white rounded-xl font-medium transition-all"
+                  >
                     Add
                   </button>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {formData.key_features.map((feature, index) => (
-                    <span key={index} className="px-3 py-1 bg-gray-800 text-slate-300 rounded-lg text-sm flex items-center gap-2">
-                      {feature}
-                      <button type="button" onClick={() => removeFeature(index)} className="text-gray-500 hover:text-red-400">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </span>
-                  ))}
-                </div>
+                {formData.key_features.length > 0 && (
+                  <div className="space-y-2">
+                    {formData.key_features.map((feature, index) => (
+                      <div key={index} className="flex items-center justify-between px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg">
+                        <span className="text-white">{feature}</span>
+                        <button 
+                          type="button" 
+                          onClick={() => removeFeature(index)} 
+                          className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div>

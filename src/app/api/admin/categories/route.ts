@@ -13,18 +13,15 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabaseAdmin
       .from('categories')
-      .select(`
-        *,
-        navbar_category:navbar_categories(id, name, slug)
-      `)
-      .order('order', { ascending: true });
+      .select('*')
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
 
     return successResponse({ data });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching categories:', error);
-    return errorResponse('Failed to fetch categories');
+    return errorResponse(error?.message || 'Failed to fetch categories');
   }
 }
 
@@ -38,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, slug, description, image, order, is_active, navbar_category_id } = body;
+    const { name, slug, description, image, is_active } = body;
 
     if (!name || !slug) {
       return errorResponse('Name and slug are required', 400);
@@ -49,21 +46,22 @@ export async function POST(request: NextRequest) {
       .insert([{ 
         name, 
         slug, 
-        description, 
-        image, 
-        order: order || 0, 
-        is_active: is_active ?? true,
-        navbar_category_id 
+        description: description || null, 
+        image: image || null, 
+        is_active: is_active ?? true
       }])
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase insert error:', error);
+      throw error;
+    }
 
     return successResponse({ data, message: 'Category created successfully' }, 201);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating category:', error);
-    return errorResponse('Failed to create category');
+    return errorResponse(error?.message || 'Failed to create category');
   }
 }
 
@@ -77,7 +75,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, name, slug, description, image, order, is_active, navbar_category_id } = body;
+    const { id, name, slug, description, image, is_active } = body;
 
     if (!id) {
       return errorResponse('ID is required', 400);
@@ -85,7 +83,13 @@ export async function PUT(request: NextRequest) {
 
     const { data, error } = await supabaseAdmin
       .from('categories')
-      .update({ name, slug, description, image, order, is_active, navbar_category_id })
+      .update({ 
+        name, 
+        slug, 
+        description: description || null, 
+        image: image || null, 
+        is_active 
+      })
       .eq('id', id)
       .select()
       .single();
@@ -93,9 +97,9 @@ export async function PUT(request: NextRequest) {
     if (error) throw error;
 
     return successResponse({ data, message: 'Category updated successfully' });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating category:', error);
-    return errorResponse('Failed to update category');
+    return errorResponse(error?.message || 'Failed to update category');
   }
 }
 

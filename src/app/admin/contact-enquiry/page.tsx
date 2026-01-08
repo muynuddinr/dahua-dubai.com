@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Contact } from '@/lib/supabase';
+import { toast } from 'react-toastify';
 
 export default function ContactEnquiryPage() {
   const [enquiries, setEnquiries] = useState<Contact[]>([]);
@@ -39,12 +40,14 @@ export default function ContactEnquiryPage() {
         .eq('id', id);
 
       if (error) throw error;
+      toast.success('Status updated successfully!');
       await fetchEnquiries();
       if (selectedEnquiry?.id === id) {
         setSelectedEnquiry({ ...selectedEnquiry, status });
       }
     } catch (error) {
       console.error('Error updating status:', error);
+      toast.error('Error updating status');
     }
   };
 
@@ -54,12 +57,14 @@ export default function ContactEnquiryPage() {
     try {
       const { error } = await supabase.from('contacts').delete().eq('id', id);
       if (error) throw error;
+      toast.success('Enquiry deleted successfully!');
       await fetchEnquiries();
       if (selectedEnquiry?.id === id) {
         setSelectedEnquiry(null);
       }
     } catch (error) {
       console.error('Error deleting enquiry:', error);
+      toast.error('Error deleting enquiry');
     }
   };
 

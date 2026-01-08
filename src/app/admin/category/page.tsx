@@ -2,23 +2,21 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Category, NavbarCategory } from '@/lib/supabase';
+import { Category } from '@/lib/supabase';
 import Image from 'next/image';
+import { toast } from 'react-toastify';
 
 export default function CategoryPage() {
-  const [categories, setCategories] = useState<(Category & { navbar_categories?: NavbarCategory })[]>([]);
-  const [navbarCategories, setNavbarCategories] = useState<NavbarCategory[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterNavbar, setFilterNavbar] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
     description: '',
-    navbar_category_id: '',
     is_active: true,
     image: '',
   });
@@ -32,23 +30,13 @@ export default function CategoryPage() {
 
   const fetchData = async () => {
     try {
-      const [categoriesRes, navbarRes] = await Promise.all([
-        supabase
-          .from('categories')
-          .select('*, navbar_categories(*)')
-          .order('order', { ascending: true }),
-        supabase
-          .from('navbar_categories')
-          .select('*')
-          .eq('is_active', true)
-          .order('order', { ascending: true }),
-      ]);
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      if (categoriesRes.error) throw categoriesRes.error;
-      if (navbarRes.error) throw navbarRes.error;
-
-      setCategories(categoriesRes.data || []);
-      setNavbarCategories(navbarRes.data || []);
+      if (error) throw error;
+      setCategories(data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -65,29 +53,13 @@ export default function CategoryPage() {
     setFormData({ ...formData, name, slug: generateSlug(name) });
   };
 
-  // Refresh dropdown data to get latest navbar categories
-  const refreshDropdowns = async () => {
-    try {
-      const navbarRes = await supabase
-        .from('navbar_categories')
-        .select('*')
-        .eq('is_active', true)
-        .order('order', { ascending: true });
-      if (!navbarRes.error) setNavbarCategories(navbarRes.data || []);
-    } catch (error) {
-      console.error('Error refreshing dropdowns:', error);
-    }
-  };
-
-  const openModal = async (category?: Category) => {
-    await refreshDropdowns();
+  const openModal = (category?: Category) => {
     if (category) {
       setEditingCategory(category);
       setFormData({
         name: category.name,
         slug: category.slug,
         description: category.description || '',
-        navbar_category_id: category.navbar_category_id,
         is_active: category.is_active,
         image: category.image || '',
       });
@@ -98,7 +70,6 @@ export default function CategoryPage() {
         name: '',
         slug: '',
         description: '',
-        navbar_category_id: navbarCategories[0]?.id || '',
         is_active: true,
         image: '',
       });
@@ -138,10 +109,11 @@ export default function CategoryPage() {
       if (result.success) {
         setFormData(prev => ({ ...prev, image: result.data.url }));
         setImagePreview(result.data.url);
+        toast.success('Image uploaded successfully!');
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Error uploading image');
+      toast.error('Error uploading image');
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -163,7 +135,6 @@ export default function CategoryPage() {
         name: formData.name,
         slug: formData.slug,
         description: formData.description || null,
-        navbar_category_id: formData.navbar_category_id,
         is_active: formData.is_active,
         image: formData.image || null,
       };
@@ -179,6 +150,7 @@ export default function CategoryPage() {
         });
         const result = await response.json();
         if (!result.success) throw new Error(result.message || 'Update failed');
+        toast.success('Category updated successfully!');
       } else {
         const response = await fetch('/api/admin/categories', {
           method: 'POST',
@@ -190,13 +162,14 @@ export default function CategoryPage() {
         });
         const result = await response.json();
         if (!result.success) throw new Error(result.message || 'Create failed');
+        toast.success('Category created successfully!');
       }
 
       await fetchData();
       closeModal();
     } catch (error) {
       console.error('Error saving category:', error);
-      alert('Error saving category: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      toast.error('Error saving category: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setSaving(false);
     }
@@ -215,21 +188,21 @@ export default function CategoryPage() {
       });
       const result = await response.json();
       if (!result.success) throw new Error(result.message || 'Delete failed');
+      toast.success('Category deleted successfully!');
       await fetchData();
     } catch (error) {
       console.error('Error deleting category:', error);
-      alert('Error deleting category: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      toast.error('Error deleting category: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
   const filteredCategories = categories.filter((category) => {
     const matchesSearch = category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          category.slug.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesNavbar = !filterNavbar || category.navbar_category_id === filterNavbar;
     const matchesStatus = !filterStatus || 
                          (filterStatus === 'active' && category.is_active) ||
                          (filterStatus === 'inactive' && !category.is_active);
-    return matchesSearch && matchesNavbar && matchesStatus;
+    return matchesSearch && matchesStatus;
   });
 
   return (
@@ -253,7 +226,7 @@ export default function CategoryPage() {
 
       {/* Search & Filters */}
       <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2">
             <div className="relative">
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -268,16 +241,6 @@ export default function CategoryPage() {
               />
             </div>
           </div>
-          <select
-            value={filterNavbar}
-            onChange={(e) => setFilterNavbar(e.target.value)}
-            className="px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-pink-500"
-          >
-            <option value="">All Navbar Categories</option>
-            {navbarCategories.map((nc) => (
-              <option key={nc.id} value={nc.id}>{nc.name}</option>
-            ))}
-          </select>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
@@ -301,7 +264,7 @@ export default function CategoryPage() {
             <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
             </svg>
-            <p className="text-gray-400">{searchTerm || filterNavbar || filterStatus ? 'No categories match your filters' : 'No categories found'}</p>
+            <p className="text-gray-400">{searchTerm || filterStatus ? 'No categories match your filters' : 'No categories found'}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -311,8 +274,6 @@ export default function CategoryPage() {
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Image</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Name</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Slug</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Navbar Category</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Order</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-4 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Actions</th>
                 </tr>
@@ -338,14 +299,6 @@ export default function CategoryPage() {
                     </td>
                     <td className="px-6 py-4">
                       <code className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">{category.slug}</code>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-1 bg-pink-500/10 text-pink-400 rounded text-xs">
-                        {(category as any).navbar_categories?.name || 'N/A'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-gray-400">#{category.order}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -428,21 +381,6 @@ export default function CategoryPage() {
                   placeholder="category-slug"
                   required
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Navbar Category</label>
-                <select
-                  value={formData.navbar_category_id}
-                  onChange={(e) => setFormData({ ...formData, navbar_category_id: e.target.value })}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-pink-500"
-                  required
-                >
-                  <option value="">Select navbar category</option>
-                  {navbarCategories.map((nc) => (
-                    <option key={nc.id} value={nc.id}>{nc.name}</option>
-                  ))}
-                </select>
               </div>
 
               <div>

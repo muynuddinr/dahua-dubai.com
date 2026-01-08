@@ -2,20 +2,12 @@ import { notFound } from 'next/navigation';
 import SubCategoryPageClient from './SubCategoryPageClient';
 import type { Metadata } from 'next';
 
-interface NavbarCategory {
-  _id: string;
-  name: string;
-  slug: string;
-  href: string;
-}
-
 interface Category {
   _id: string;
   name: string;
   slug: string;
   description?: string;
   image?: string;
-  navbarCategoryId: NavbarCategory;
   isActive: boolean;
   order: number;
 }
@@ -28,7 +20,6 @@ interface SubCategory {
   image?: string;
   imagePublicId?: string;
   categoryId: Category;
-  navbarCategoryId: NavbarCategory;
   isActive: boolean;
   order: number;
   createdAt: string;
@@ -52,7 +43,6 @@ interface Product {
   }[];
   subcategoryId: string;
   categoryId: string;
-  navbarCategoryId: string;
   isActive: boolean;
   order: number;
 }

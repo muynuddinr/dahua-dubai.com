@@ -40,18 +40,10 @@ const getImageUrl = (url?: string, publicId?: string): string => {
   return url;
 };
 
-interface NavbarCategory {
-  _id: string;
-  name: string;
-  slug: string;
-  href: string;
-}
-
 interface Category {
   _id: string;
   name: string;
   slug: string;
-  navbarCategoryId: NavbarCategory;
 }
 
 interface SubCategory {
@@ -59,7 +51,6 @@ interface SubCategory {
   name: string;
   slug: string;
   categoryId: Category;
-  navbarCategoryId: NavbarCategory;
 }
 
 interface Product {
@@ -74,7 +65,6 @@ interface Product {
   }[];
   subcategoryId: SubCategory;
   categoryId: Category;
-  navbarCategoryId: NavbarCategory;
   isActive: boolean;
   order: number;
   createdAt: string;
@@ -336,7 +326,6 @@ export default function ProductDetailPageClient({
 
   const category = product.categoryId as Category;
   const subCategory = product.subcategoryId as SubCategory;
-  const navbarCategory = product.navbarCategoryId as NavbarCategory;
 
   const nextImage = () => {
     if (product && product.images) {
@@ -484,18 +473,14 @@ export default function ProductDetailPageClient({
 
             <FaChevronRight className="w-1 h-1 sm:w-1.5 sm:h-1.5 text-slate-400 flex-shrink-0" />
 
-            {navbarCategory && (
-              <>
-                <Link
-                  href={navbarCategory.href}
-                  className="text-slate-600 hover:text-red-400 transition-colors whitespace-nowrap flex-shrink-0"
-                >
-                  {navbarCategory.name}
-                </Link>
+            <Link
+              href="/products"
+              className="text-slate-600 hover:text-red-400 transition-colors whitespace-nowrap flex-shrink-0"
+            >
+              Products
+            </Link>
 
-                <FaChevronRight className="w-1 h-1 sm:w-1.5 sm:h-1.5 text-slate-400 flex-shrink-0" />
-              </>
-            )}
+            <FaChevronRight className="w-1 h-1 sm:w-1.5 sm:h-1.5 text-slate-400 flex-shrink-0" />
 
             <Link
               href={`/product/${category?.slug}`}
@@ -631,21 +616,26 @@ export default function ProductDetailPageClient({
                 </div>
 
                 {product.keyFeatures?.length > 0 && (
-                  <div className="space-y-3">
-                    {product.keyFeatures.map((feature, idx) => (
-                      <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1 + idx * 0.05 }}
-                        className="flex items-start gap-3"
-                      >
-                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-2 flex-shrink-0" />
-                        <span className="text-slate-700 text-xs sm:text-sm md:text-base leading-relaxed">
-                          {feature}
-                        </span>
-                      </motion.div>
-                    ))}
+                  <div className="space-y-4">
+                    <h3 className="text-sm sm:text-base md:text-lg font-semibold text-slate-800">
+                      Key Features
+                    </h3>
+                    <div className="space-y-3">
+                      {product.keyFeatures.map((feature, idx) => (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.1 + idx * 0.05 }}
+                          className="flex items-start gap-3"
+                        >
+                          <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-2 flex-shrink-0" />
+                          <span className="text-slate-700 text-xs sm:text-sm md:text-base leading-relaxed">
+                            {feature}
+                          </span>
+                        </motion.div>
+                      ))}
+                    </div>
                   </div>
                 )}
 

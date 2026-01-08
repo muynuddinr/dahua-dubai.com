@@ -80,17 +80,6 @@ export function isSupabaseConfigured(): boolean {
 // TYPE EXPORTS (for backwards compatibility)
 // =====================================================
 
-export interface NavbarCategory {
-  id: string;
-  name: string;
-  slug: string;
-  href: string;
-  order: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface Category {
   id: string;
   name: string;
@@ -98,7 +87,6 @@ export interface Category {
   description: string | null;
   image: string | null;
   image_public_id: string | null;
-  navbar_category_id: string;
   is_active: boolean;
   order: number;
   created_at: string;
@@ -113,7 +101,6 @@ export interface SubCategory {
   image: string | null;
   image_public_id: string | null;
   category_id: string;
-  navbar_category_id: string;
   is_active: boolean;
   order: number;
   created_at: string;
@@ -134,7 +121,6 @@ export interface Product {
   images: ProductImage[];
   subcategory_id: string;
   category_id: string;
-  navbar_category_id: string;
   is_active: boolean;
   order: number;
   created_at: string;

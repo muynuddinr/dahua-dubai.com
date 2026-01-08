@@ -21,18 +21,10 @@ const getImageUrl = (url?: string, publicId?: string): string => {
   return url;
 };
 
-interface NavbarCategory {
-  _id: string;
-  name: string;
-  slug: string;
-  href: string;
-}
-
 interface Category {
   _id: string;
   name: string;
   slug: string;
-  navbarCategoryId: NavbarCategory;
 }
 
 interface SubCategory {
@@ -40,7 +32,6 @@ interface SubCategory {
   name: string;
   slug: string;
   categoryId: Category;
-  navbarCategoryId: NavbarCategory;
 }
 
 interface Product {
@@ -55,7 +46,6 @@ interface Product {
   }[];
   subcategoryId: SubCategory;
   categoryId: Category;
-  navbarCategoryId: NavbarCategory;
   isActive: boolean;
   order: number;
   createdAt: string;

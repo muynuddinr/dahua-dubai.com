@@ -32,20 +32,12 @@ const getImageUrl = (url?: string, publicId?: string): string => {
   return url;
 };
 
-interface NavbarCategory {
-  _id: string;
-  name: string;
-  slug: string;
-  href: string;
-}
-
 interface Category {
   _id: string;
   name: string;
   slug: string;
   description?: string;
   image?: string;
-  navbarCategoryId: NavbarCategory;
   isActive: boolean;
   order: number;
 }
@@ -58,7 +50,6 @@ interface SubCategory {
   image?: string;
   imagePublicId?: string;
   categoryId: Category;
-  navbarCategoryId: NavbarCategory;
   isActive: boolean;
   order: number;
   createdAt: string;
@@ -77,7 +68,6 @@ interface Product {
   }[];
   subcategoryId: string;
   categoryId: string;
-  navbarCategoryId: string;
   isActive: boolean;
   order: number;
 }
@@ -282,7 +272,6 @@ export default function SubCategoryPageClient({
   const shouldReduceMotion = useReducedMotion();
 
   const category = subCategory.categoryId as Category;
-  const navbarCategory = subCategory.navbarCategoryId as NavbarCategory;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -475,10 +464,10 @@ export default function SubCategoryPageClient({
             <FaChevronRight className="w-1 h-1 sm:w-1.5 sm:h-1.5 text-slate-400 flex-shrink-0" />
 
             <Link
-              href={navbarCategory.href}
+              href="/products"
               className="text-slate-600 hover:text-red-400 transition-colors whitespace-nowrap flex-shrink-0"
             >
-              {navbarCategory.name}
+              Products
             </Link>
 
             <FaChevronRight className="w-1 h-1 sm:w-1.5 sm:h-1.5 text-slate-400 flex-shrink-0" />
@@ -492,12 +481,9 @@ export default function SubCategoryPageClient({
 
             <FaChevronRight className="w-1 h-1 sm:w-1.5 sm:h-1.5 text-slate-400 flex-shrink-0" />
 
-            <Link
-              href={`/product/${category.slug}/${subCategory.slug}`}
-              className="text-red-500 hover:text-red-400 transition-colors whitespace-nowrap flex-shrink-0"
-            >
+            <span className="text-red-500 font-semibold whitespace-nowrap flex-shrink-0">
               {subCategory.name}
-            </Link>
+            </span>
           </motion.nav>
 
           <style jsx>{`

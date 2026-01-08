@@ -15,26 +15,13 @@ interface HeaderProps {
   location?: string;
 }
 
-interface NavbarCategory {
-  _id: string;
-  name: string;
-  slug: string;
-  href: string;
-  order: number;
-  isActive: boolean;
-}
+
 
 interface Category {
   _id: string;
   name: string;
   slug: string;
   description?: string;
-  navbarCategoryId:
-    | {
-        _id: string;
-        name: string;
-      }
-    | string;
   isActive: boolean;
   order: number;
 }
@@ -89,7 +76,6 @@ const Navbar = ({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mobileSubMenu, setMobileSubMenu] = useState<null | string>(null);
-  const [navCategories, setNavCategories] = useState<NavbarCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -108,14 +94,6 @@ const Navbar = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const navbarResponse = await axios.get("/api/navbar-category");
-        if (navbarResponse.data.success) {
-          const activeNavCategories = navbarResponse.data.data
-            .filter((cat: NavbarCategory) => cat.isActive)
-            .sort((a: NavbarCategory, b: NavbarCategory) => a.order - b.order);
-          setNavCategories(activeNavCategories);
-        }
-
         const categoryResponse = await axios.get("/api/category");
         if (categoryResponse.data.success) {
           const activeCategories = categoryResponse.data.data
@@ -125,7 +103,6 @@ const Navbar = ({
         }
       } catch (error) {
         console.error("Error fetching navigation data:", error);
-        setNavCategories([]);
         setCategories([]);
       } finally {
         setLoading(false);
@@ -312,47 +289,25 @@ const Navbar = ({
     { href: "/contact", label: "Contact Us" },
   ];
 
-  const staticHrefs = navLinks.map((l) => l.href);
-  const mergedNavLinks = [
-    ...navLinks.slice(0, 1),
-    ...navCategories
-      .filter((navCat) => !staticHrefs.includes(navCat.href))
-      .map((navCat) => {
-        const relatedCategories = categories.filter((cat) => {
-          const navbarId =
-            typeof cat.navbarCategoryId === "string"
-              ? cat.navbarCategoryId
-              : (cat.navbarCategoryId as any)._id;
-          return navbarId === navCat._id;
-        });
+  // Build Products submenu dynamically from categories
+  const productsSubmenu = categories.length > 0 
+    ? categories.map((cat) => ({
+        href: `/product/${cat.slug}`,
+        label: cat.name,
+        desc: cat.description || `View ${cat.name}`,
+      }))
+    : [];
 
-        if (relatedCategories.length > 0) {
-          return {
-            href: navCat.href,
-            label: navCat.name,
-            submenu: relatedCategories.map((cat) => ({
-              href: `/product/${cat.slug}`,
-              label: cat.name,
-              desc: cat.description || `View ${cat.name}`,
-            })),
-          };
-        }
-
-        return {
-          href: navCat.href,
-          label: navCat.name,
-        };
-      }),
-    ...navLinks.slice(1),
+  // Insert Products link after Home with dynamic categories submenu
+  const uniqueNavLinks = [
+    navLinks[0], // Home
+    {
+      href: "/products",
+      label: "Products",
+      ...(productsSubmenu.length > 0 && { submenu: productsSubmenu }),
+    },
+    ...navLinks.slice(1), // Rest of the links
   ];
-
-  const uniqueNavLinks = mergedNavLinks.reduce((acc: any[], curr) => {
-    const exists = acc.find((item) => item.href === curr.href);
-    if (!exists) {
-      acc.push(curr);
-    }
-    return acc;
-  }, []);
 
   const handleDropdownMouseEnter = (href: string) => {
     if (closeTimeoutRef.current) {
@@ -946,10 +901,10 @@ const Navbar = ({
                       Popular Categories
                     </h3>
                     <ul className="grid grid-cols-2 gap-2">
-                      {navCategories.slice(0, 6).map((category) => (
+                      {categories.slice(0, 6).map((category) => (
                         <li key={category._id}>
                           <Link
-                            href={category.href}
+                            href={`/product/${category.slug}`}
                             className="text-sm text-gray-600 hover:text-red-600 transition-colors p-2 block rounded hover:bg-gray-50"
                             onClick={() => {
                               setSearchQuery("");
@@ -1086,10 +1041,10 @@ const Navbar = ({
                       Popular Categories
                     </h3>
                     <ul className="grid grid-cols-3 gap-2">
-                      {navCategories.slice(0, 9).map((category) => (
+                      {categories.slice(0, 9).map((category) => (
                         <li key={category._id}>
                           <Link
-                            href={category.href}
+                            href={`/product/${category.slug}`}
                             className="text-sm text-gray-600 hover:text-red-600 transition-colors"
                             onClick={() => {
                               setSearchQuery("");
