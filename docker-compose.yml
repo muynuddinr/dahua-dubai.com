@@ -15,8 +15,22 @@ services:
     environment:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
-    env_file:
-      - .env.local
+      - PORT=8088
+      # JWT Configuration
+      - JWT_SECRET=e2aa6f235d73864329f81559a4a66d7d
+      # Admin Credentials
+      - ADMIN_EMAIL=admin@dahuva.com
+      - ADMIN_PASSWORD=password123
+      # Cloudinary Config
+      - NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dhkf6dhvd
+      - CLOUDINARY_API_KEY=991453858581113
+      - CLOUDINARY_API_SECRET=NdK3TIA7UweDA4Bw13xlKdKmPU4
+      # API Configuration
+      - NEXT_PUBLIC_API_URL=https://dahua-dubai.com
+      # Supabase Config
+      - NEXT_PUBLIC_SUPABASE_URL=https://aijmdajuebprtroohuos.supabase.co
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpam1kYWp1ZWJwcnRyb29odW9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MDUzNTIsImV4cCI6MjA4MzE4MTM1Mn0.FXxoC2rqTSrG2YgsJG9bMmGuR71gZi9kerSXkB86v10
+      - SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpam1kYWp1ZWJwcnRyb29odW9zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NzYwNTM1MiwiZXhwIjoyMDgzMTgxMzUyfQ.21I9GMBEAeGKyRBvfvl9owrVZtsIzfTx4qMr3COoh0s
     restart: always
     networks:
       - dahua-network
