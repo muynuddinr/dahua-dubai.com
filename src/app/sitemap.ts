@@ -6,7 +6,7 @@ async function getCategories() {
   try {
     const response = await fetch(
       `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+        process.env.NEXT_PUBLIC_API_URL || "https://dahua-dubai.com"
       }/api/category`,
       {
         headers: {
@@ -30,7 +30,7 @@ async function getSubCategories() {
   try {
     const response = await fetch(
       `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+        process.env.NEXT_PUBLIC_API_URL || "https://dahua-dubai.com"
       }/api/sub-category`,
       {
         headers: {
@@ -54,7 +54,7 @@ async function getProducts() {
   try {
     const response = await fetch(
       `${
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+        process.env.NEXT_PUBLIC_API_URL || "https://dahua-dubai.com"
       }/api/product`,
       {
         headers: {

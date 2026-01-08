@@ -45,7 +45,7 @@ A modern, full-stack e-commerce website for Dahua security products built with N
 
 5. **Open browser**
    ```
-   http://localhost:3000
+   https://dahua-dubai.com
    ```
 
 ### Production (Docker)
@@ -63,7 +63,7 @@ A modern, full-stack e-commerce website for Dahua security products built with N
 
 3. **Access the application**
    ```
-   http://localhost:3000
+   https://dahua-dubai.com
    ```
 
 ## 📁 Project Structure
@@ -158,7 +158,7 @@ docker-compose down
 docker-compose build --no-cache
 
 # Check health
-curl http://localhost:3000/api/health
+curl https://dahua-dubai.com/api/health
 ```
 
 ## 📈 Production Checklist
