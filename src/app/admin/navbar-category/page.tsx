@@ -98,25 +98,34 @@ export default function NavbarCategoryPage() {
       const token = localStorage.getItem('adminToken');
       
       if (editingCategory) {
-        const { error } = await supabase
-          .from('navbar_categories')
-          .update(formData)
-          .eq('id', editingCategory.id);
-
-        if (error) throw error;
+        const response = await fetch('/api/admin/navbar-categories', {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ id: editingCategory.id, ...formData }),
+        });
+        const result = await response.json();
+        if (!result.success) throw new Error(result.message || 'Update failed');
       } else {
-        const { error } = await supabase
-          .from('navbar_categories')
-          .insert([formData]);
-
-        if (error) throw error;
+        const response = await fetch('/api/admin/navbar-categories', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(formData),
+        });
+        const result = await response.json();
+        if (!result.success) throw new Error(result.message || 'Create failed');
       }
 
       await fetchCategories();
       closeModal();
     } catch (error) {
       console.error('Error saving category:', error);
-      alert('Error saving category');
+      alert('Error saving category: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setSaving(false);
     }
@@ -126,16 +135,19 @@ export default function NavbarCategoryPage() {
     if (!confirm('Are you sure you want to delete this category?')) return;
 
     try {
-      const { error } = await supabase
-        .from('navbar_categories')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`/api/admin/navbar-categories?id=${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+      });
+      const result = await response.json();
+      if (!result.success) throw new Error(result.message || 'Delete failed');
       await fetchCategories();
     } catch (error) {
       console.error('Error deleting category:', error);
-      alert('Error deleting category');
+      alert('Error deleting category: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 

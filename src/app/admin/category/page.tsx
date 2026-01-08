@@ -158,6 +158,7 @@ export default function CategoryPage() {
     setSaving(true);
 
     try {
+      const token = localStorage.getItem('adminToken');
       const dataToSave = {
         name: formData.name,
         slug: formData.slug,
@@ -168,18 +169,34 @@ export default function CategoryPage() {
       };
 
       if (editingCategory) {
-        const { error } = await supabase.from('categories').update(dataToSave).eq('id', editingCategory.id);
-        if (error) throw error;
+        const response = await fetch('/api/admin/categories', {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ id: editingCategory.id, ...dataToSave }),
+        });
+        const result = await response.json();
+        if (!result.success) throw new Error(result.message || 'Update failed');
       } else {
-        const { error } = await supabase.from('categories').insert([dataToSave]);
-        if (error) throw error;
+        const response = await fetch('/api/admin/categories', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(dataToSave),
+        });
+        const result = await response.json();
+        if (!result.success) throw new Error(result.message || 'Create failed');
       }
 
       await fetchData();
       closeModal();
     } catch (error) {
       console.error('Error saving category:', error);
-      alert('Error saving category');
+      alert('Error saving category: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setSaving(false);
     }
@@ -189,12 +206,19 @@ export default function CategoryPage() {
     if (!confirm('Are you sure you want to delete this category?')) return;
 
     try {
-      const { error } = await supabase.from('categories').delete().eq('id', id);
-      if (error) throw error;
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`/api/admin/categories?id=${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+      });
+      const result = await response.json();
+      if (!result.success) throw new Error(result.message || 'Delete failed');
       await fetchData();
     } catch (error) {
       console.error('Error deleting category:', error);
-      alert('Error deleting category');
+      alert('Error deleting category: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
@@ -459,7 +483,7 @@ export default function CategoryPage() {
                   </label>
                 ) : (
                   <div className="relative h-32 rounded-xl overflow-hidden group">
-                    <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+                    <Image src={imagePreview} alt="Preview" fill sizes="128px" className="object-cover" />
                     <button
                       type="button"
                       onClick={removeImage}

@@ -220,18 +220,40 @@ export default function ProductsPage() {
       };
 
       if (editingProduct) {
-        const { error } = await supabase.from('products').update(dataToSave).eq('id', editingProduct.id);
-        if (error) throw error;
+        // Use API route for update (bypasses RLS with service role)
+        const token = localStorage.getItem('adminToken');
+        const response = await fetch('/api/admin/products', {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include',
+          body: JSON.stringify({ id: editingProduct.id, ...dataToSave }),
+        });
+        const result = await response.json();
+        if (!result.success) throw new Error(result.message || 'Update failed');
       } else {
-        const { error } = await supabase.from('products').insert([dataToSave]);
-        if (error) throw error;
+        // Use API route for insert (bypasses RLS with service role)
+        const token = localStorage.getItem('adminToken');
+        const response = await fetch('/api/admin/products', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include',
+          body: JSON.stringify(dataToSave),
+        });
+        const result = await response.json();
+        if (!result.success) throw new Error(result.message || 'Create failed');
       }
 
       await fetchData();
       closeModal();
     } catch (error) {
       console.error('Error saving product:', error);
-      alert('Error saving product');
+      alert('Error saving product: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setSaving(false);
     }
@@ -241,12 +263,21 @@ export default function ProductsPage() {
     if (!confirm('Are you sure you want to delete this product?')) return;
 
     try {
-      const { error } = await supabase.from('products').delete().eq('id', id);
-      if (error) throw error;
+      // Use API route for delete (bypasses RLS with service role)
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`/api/admin/products?id=${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
+      });
+      const result = await response.json();
+      if (!result.success) throw new Error(result.message || 'Delete failed');
       await fetchData();
     } catch (error) {
       console.error('Error deleting product:', error);
-      alert('Error deleting product');
+      alert('Error deleting product: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
@@ -594,7 +625,7 @@ export default function ProductsPage() {
                 <div className="grid grid-cols-4 gap-2 mt-3">
                   {formData.images.map((image, index) => (
                     <div key={index} className="relative h-20 rounded-lg overflow-hidden group">
-                      <Image src={image.url} alt={`Image ${index + 1}`} fill className="object-cover" />
+                      <Image src={image.url} alt={`Image ${index + 1}`} fill sizes="80px" className="object-cover" />
                       <button
                         type="button"
                         onClick={() => removeImage(index)}

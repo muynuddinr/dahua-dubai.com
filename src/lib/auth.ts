@@ -105,19 +105,19 @@ export async function verifyAdmin(request: NextRequest): Promise<VerifyResult> {
  * Create unauthorized response
  */
 export function unauthorizedResponse(message: string = 'Unauthorized') {
-  return NextResponse.json({ message }, { status: 401 });
+  return NextResponse.json({ success: false, message }, { status: 401 });
 }
 
 /**
  * Create error response
  */
 export function errorResponse(message: string, status: number = 500) {
-  return NextResponse.json({ message }, { status });
+  return NextResponse.json({ success: false, message }, { status });
 }
 
 /**
  * Create success response
  */
 export function successResponse(data: any, status: number = 200) {
-  return NextResponse.json(data, { status });
+  return NextResponse.json({ success: true, ...data }, { status });
 }

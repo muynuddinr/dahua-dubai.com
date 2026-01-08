@@ -42,23 +42,20 @@ export async function POST(request: NextRequest) {
       name, 
       slug, 
       description, 
-      short_description,
-      image, 
       images,
-      features,
-      specifications,
+      key_features,
       is_active, 
-      sub_category_id,
-      meta_title,
-      meta_description
+      subcategory_id,
+      category_id,
+      navbar_category_id,
     } = body;
 
     if (!name || !slug) {
       return errorResponse('Name and slug are required', 400);
     }
 
-    if (!sub_category_id) {
-      return errorResponse('Sub-category ID is required', 400);
+    if (!subcategory_id || !category_id || !navbar_category_id) {
+      return errorResponse('Subcategory, Category, and Navbar Category IDs are required', 400);
     }
 
     const { data, error } = await supabaseAdmin
@@ -66,16 +63,13 @@ export async function POST(request: NextRequest) {
       .insert([{ 
         name, 
         slug, 
-        description, 
-        short_description,
-        image, 
+        description: description || null,
         images: images || [],
-        features: features || [],
-        specifications: specifications || {},
+        key_features: key_features || [],
         is_active: is_active ?? true,
-        subcategory_id: sub_category_id,
-        meta_title,
-        meta_description
+        subcategory_id,
+        category_id,
+        navbar_category_id,
       }])
       .select()
       .single();
@@ -104,15 +98,12 @@ export async function PUT(request: NextRequest) {
       name, 
       slug, 
       description, 
-      short_description,
-      image, 
       images,
-      features,
-      specifications,
+      key_features,
       is_active, 
-      sub_category_id,
-      meta_title,
-      meta_description
+      subcategory_id,
+      category_id,
+      navbar_category_id,
     } = body;
 
     if (!id) {
@@ -124,16 +115,13 @@ export async function PUT(request: NextRequest) {
       .update({ 
         name, 
         slug, 
-        description, 
-        short_description,
-        image, 
+        description: description || null, 
         images,
-        features,
-        specifications,
+        key_features,
         is_active,
-        subcategory_id: sub_category_id,
-        meta_title,
-        meta_description
+        subcategory_id,
+        category_id,
+        navbar_category_id,
       })
       .eq('id', id)
       .select()

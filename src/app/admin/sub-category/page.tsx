@@ -171,6 +171,7 @@ export default function SubCategoryPage() {
     setSaving(true);
 
     try {
+      const token = localStorage.getItem('adminToken');
       const dataToSave = {
         name: formData.name,
         slug: formData.slug,
@@ -182,18 +183,34 @@ export default function SubCategoryPage() {
       };
 
       if (editingSubCategory) {
-        const { error } = await supabase.from('sub_categories').update(dataToSave).eq('id', editingSubCategory.id);
-        if (error) throw error;
+        const response = await fetch('/api/admin/sub-categories', {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ id: editingSubCategory.id, ...dataToSave }),
+        });
+        const result = await response.json();
+        if (!result.success) throw new Error(result.message || 'Update failed');
       } else {
-        const { error } = await supabase.from('sub_categories').insert([dataToSave]);
-        if (error) throw error;
+        const response = await fetch('/api/admin/sub-categories', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(dataToSave),
+        });
+        const result = await response.json();
+        if (!result.success) throw new Error(result.message || 'Create failed');
       }
 
       await fetchData();
       closeModal();
     } catch (error) {
       console.error('Error saving sub-category:', error);
-      alert('Error saving sub-category');
+      alert('Error saving sub-category: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setSaving(false);
     }
@@ -203,12 +220,19 @@ export default function SubCategoryPage() {
     if (!confirm('Are you sure you want to delete this sub-category?')) return;
 
     try {
-      const { error } = await supabase.from('sub_categories').delete().eq('id', id);
-      if (error) throw error;
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`/api/admin/sub-categories?id=${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+      });
+      const result = await response.json();
+      if (!result.success) throw new Error(result.message || 'Delete failed');
       await fetchData();
     } catch (error) {
       console.error('Error deleting sub-category:', error);
-      alert('Error deleting sub-category');
+      alert('Error deleting sub-category: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
@@ -489,7 +513,7 @@ export default function SubCategoryPage() {
                   </label>
                 ) : (
                   <div className="relative h-32 rounded-xl overflow-hidden group">
-                    <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+                    <Image src={imagePreview} alt="Preview" fill sizes="128px" className="object-cover" />
                     <button
                       type="button"
                       onClick={removeImage}
