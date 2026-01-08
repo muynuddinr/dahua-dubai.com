@@ -406,8 +406,8 @@ export default function SubCategoryPageClient({
             alt={`${subCategory.name} Hero Mobile`}
             fill
             className="object-cover w-full h-full"
+            sizes="100vw"
             priority
-            quality={100}
             onLoad={() => setIsLoaded(true)}
           />
         </motion.div>

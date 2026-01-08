@@ -21,13 +21,13 @@ export default function SubCategoryPage() {
     description: '',
     category_id: '',
     navbar_category_id: '',
-    order: 0,
     is_active: true,
     image: '',
   });
   const [saving, setSaving] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [selectedNavbarCategory, setSelectedNavbarCategory] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -73,7 +73,22 @@ export default function SubCategoryPage() {
     (cat) => cat.navbar_category_id === (selectedNavbarCategory || formData.navbar_category_id)
   );
 
-  const openModal = (subCategory?: SubCategory) => {
+  // Refresh dropdown data to get latest categories and navbar categories
+  const refreshDropdowns = async () => {
+    try {
+      const [catRes, navbarRes] = await Promise.all([
+        supabase.from('categories').select('*').eq('is_active', true).order('name', { ascending: true }),
+        supabase.from('navbar_categories').select('*').eq('is_active', true).order('order', { ascending: true }),
+      ]);
+      if (!catRes.error) setCategories(catRes.data || []);
+      if (!navbarRes.error) setNavbarCategories(navbarRes.data || []);
+    } catch (error) {
+      console.error('Error refreshing dropdowns:', error);
+    }
+  };
+
+  const openModal = async (subCategory?: SubCategory) => {
+    await refreshDropdowns();
     if (subCategory) {
       setEditingSubCategory(subCategory);
       setSelectedNavbarCategory(subCategory.navbar_category_id);
@@ -83,7 +98,6 @@ export default function SubCategoryPage() {
         description: subCategory.description || '',
         category_id: subCategory.category_id,
         navbar_category_id: subCategory.navbar_category_id,
-        order: subCategory.order,
         is_active: subCategory.is_active,
         image: subCategory.image || '',
       });
@@ -97,7 +111,6 @@ export default function SubCategoryPage() {
         description: '',
         category_id: '',
         navbar_category_id: '',
-        order: subCategories.length,
         is_active: true,
         image: '',
       });
@@ -113,6 +126,46 @@ export default function SubCategoryPage() {
     setSelectedNavbarCategory('');
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    try {
+      const file = files[0];
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+      formDataUpload.append('folder', 'dahua-dubai/sub-categories');
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formDataUpload,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Upload failed');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setFormData(prev => ({ ...prev, image: result.data.url }));
+        setImagePreview(result.data.url);
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error uploading image');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const removeImage = () => {
+    setFormData(prev => ({ ...prev, image: '' }));
+    setImagePreview('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -124,7 +177,6 @@ export default function SubCategoryPage() {
         description: formData.description || null,
         category_id: formData.category_id,
         navbar_category_id: formData.navbar_category_id,
-        order: formData.order,
         is_active: formData.is_active,
         image: formData.image || null,
       };
@@ -411,33 +463,44 @@ export default function SubCategoryPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Image URL</label>
-                <input
-                  type="text"
-                  value={formData.image}
-                  onChange={(e) => {
-                    setFormData({ ...formData, image: e.target.value });
-                    setImagePreview(e.target.value);
-                  }}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-pink-500"
-                  placeholder="https://example.com/image.jpg"
-                />
-                {imagePreview && (
-                  <div className="mt-2 relative h-32 rounded-lg overflow-hidden">
+                <label className="block text-sm font-medium text-gray-400 mb-2">Image</label>
+                {!imagePreview ? (
+                  <label className="flex items-center justify-center gap-2 px-4 py-6 bg-gray-800 border-2 border-dashed border-gray-600 rounded-xl text-gray-400 hover:border-pink-500 hover:text-pink-400 transition-colors cursor-pointer">
+                    {uploading ? (
+                      <>
+                        <div className="animate-spin w-5 h-5 border-2 border-pink-400 border-t-transparent rounded-full"></div>
+                        <span>Uploading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>Click to upload image</span>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={uploading}
+                    />
+                  </label>
+                ) : (
+                  <div className="relative h-32 rounded-xl overflow-hidden group">
                     <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                    >
+                      <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
                   </div>
                 )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Order</label>
-                <input
-                  type="number"
-                  value={formData.order}
-                  onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-pink-500"
-                  min="0"
-                />
               </div>
 
               <div className="flex items-center gap-3">

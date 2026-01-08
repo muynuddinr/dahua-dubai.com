@@ -14,6 +14,7 @@ export default function ProductsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
   const [filterSubCategory, setFilterSubCategory] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [formData, setFormData] = useState({
@@ -25,14 +26,13 @@ export default function ProductsPage() {
     subcategory_id: '',
     category_id: '',
     navbar_category_id: '',
-    order: 0,
     is_active: true,
   });
   const [saving, setSaving] = useState(false);
   const [selectedNavbarCategory, setSelectedNavbarCategory] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [newFeature, setNewFeature] = useState('');
-  const [newImageUrl, setNewImageUrl] = useState('');
+  const [featuresText, setFeaturesText] = useState('');
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -82,10 +82,14 @@ export default function ProductsPage() {
   const filteredCategoriesForModal = categories.filter((cat) => cat.navbar_category_id === selectedNavbarCategory);
   const filteredSubCategoriesForModal = subCategories.filter((sub) => sub.category_id === selectedCategory);
 
-  const addFeature = () => {
-    if (newFeature.trim()) {
-      setFormData({ ...formData, key_features: [...formData.key_features, newFeature.trim()] });
-      setNewFeature('');
+  const addFeatures = () => {
+    if (featuresText.trim()) {
+      const newFeatures = featuresText
+        .split('\n')
+        .map(f => f.trim())
+        .filter(f => f.length > 0);
+      setFormData({ ...formData, key_features: [...formData.key_features, ...newFeatures] });
+      setFeaturesText('');
     }
   };
 
@@ -93,10 +97,43 @@ export default function ProductsPage() {
     setFormData({ ...formData, key_features: formData.key_features.filter((_, i) => i !== index) });
   };
 
-  const addImage = () => {
-    if (newImageUrl.trim()) {
-      setFormData({ ...formData, images: [...formData.images, { url: newImageUrl.trim(), publicId: '' }] });
-      setNewImageUrl('');
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+        formDataUpload.append('folder', 'dahua-dubai/products');
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formDataUpload,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Upload error:', errorData);
+          throw new Error(errorData.message || 'Upload failed');
+        }
+
+        const result = await response.json();
+        if (result.success) {
+          setFormData(prev => ({
+            ...prev,
+            images: [...prev.images, { url: result.data.url, publicId: result.data.publicId }]
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error uploading image');
+    } finally {
+      setUploading(false);
+      // Reset the file input
+      e.target.value = '';
     }
   };
 
@@ -104,7 +141,25 @@ export default function ProductsPage() {
     setFormData({ ...formData, images: formData.images.filter((_, i) => i !== index) });
   };
 
-  const openModal = (product?: Product) => {
+  // Refresh dropdown data to get latest categories and subcategories
+  const refreshDropdowns = async () => {
+    try {
+      const [subCatRes, catRes, navbarRes] = await Promise.all([
+        supabase.from('sub_categories').select('*').eq('is_active', true).order('name'),
+        supabase.from('categories').select('*').eq('is_active', true).order('name'),
+        supabase.from('navbar_categories').select('*').eq('is_active', true).order('order'),
+      ]);
+      if (!subCatRes.error) setSubCategories(subCatRes.data || []);
+      if (!catRes.error) setCategories(catRes.data || []);
+      if (!navbarRes.error) setNavbarCategories(navbarRes.data || []);
+    } catch (error) {
+      console.error('Error refreshing dropdowns:', error);
+    }
+  };
+
+  const openModal = async (product?: Product) => {
+    // Refresh dropdown data to ensure we have the latest categories/subcategories
+    await refreshDropdowns();
     if (product) {
       setEditingProduct(product);
       setSelectedNavbarCategory(product.navbar_category_id);
@@ -118,7 +173,6 @@ export default function ProductsPage() {
         subcategory_id: product.subcategory_id,
         category_id: product.category_id,
         navbar_category_id: product.navbar_category_id,
-        order: product.order,
         is_active: product.is_active,
       });
     } else {
@@ -134,7 +188,6 @@ export default function ProductsPage() {
         subcategory_id: '',
         category_id: '',
         navbar_category_id: '',
-        order: products.length,
         is_active: true,
       });
     }
@@ -146,8 +199,7 @@ export default function ProductsPage() {
     setEditingProduct(null);
     setSelectedNavbarCategory('');
     setSelectedCategory('');
-    setNewFeature('');
-    setNewImageUrl('');
+    setFeaturesText('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -164,7 +216,6 @@ export default function ProductsPage() {
         subcategory_id: formData.subcategory_id,
         category_id: formData.category_id,
         navbar_category_id: formData.navbar_category_id,
-        order: formData.order,
         is_active: formData.is_active,
       };
 
@@ -202,11 +253,12 @@ export default function ProductsPage() {
   const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.slug.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = !filterCategory || product.category_id === filterCategory;
     const matchesSubCategory = !filterSubCategory || product.subcategory_id === filterSubCategory;
     const matchesStatus = !filterStatus || 
                          (filterStatus === 'active' && product.is_active) ||
                          (filterStatus === 'inactive' && !product.is_active);
-    return matchesSearch && matchesSubCategory && matchesStatus;
+    return matchesSearch && matchesCategory && matchesSubCategory && matchesStatus;
   });
 
   return (
@@ -230,7 +282,7 @@ export default function ProductsPage() {
 
       {/* Search & Filters */}
       <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="md:col-span-2">
             <div className="relative">
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -246,14 +298,29 @@ export default function ProductsPage() {
             </div>
           </div>
           <select
+            value={filterCategory}
+            onChange={(e) => {
+              setFilterCategory(e.target.value);
+              setFilterSubCategory('');
+            }}
+            className="px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-pink-500"
+          >
+            <option value="">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
+          </select>
+          <select
             value={filterSubCategory}
             onChange={(e) => setFilterSubCategory(e.target.value)}
             className="px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-pink-500"
           >
             <option value="">All Sub Categories</option>
-            {subCategories.map((sub) => (
-              <option key={sub.id} value={sub.id}>{sub.name}</option>
-            ))}
+            {subCategories
+              .filter(sub => !filterCategory || sub.category_id === filterCategory)
+              .map((sub) => (
+                <option key={sub.id} value={sub.id}>{sub.name}</option>
+              ))}
           </select>
           <select
             value={filterStatus}
@@ -287,8 +354,8 @@ export default function ProductsPage() {
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Image</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Category</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Sub Category</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Features</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-4 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Actions</th>
                 </tr>
@@ -316,19 +383,14 @@ export default function ProductsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="px-2 py-1 bg-violet-500/10 text-violet-400 rounded text-xs">
-                        {product.sub_categories?.name || 'N/A'}
+                      <span className="px-2 py-1 bg-pink-500/10 text-pink-400 rounded text-xs">
+                        {product.categories?.name || 'N/A'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex flex-wrap gap-1 max-w-[200px]">
-                        {product.key_features?.slice(0, 2).map((f: string, i: number) => (
-                          <span key={i} className="px-2 py-0.5 bg-gray-800 text-gray-400 rounded text-xs truncate max-w-[80px]">{f}</span>
-                        ))}
-                        {product.key_features?.length > 2 && (
-                          <span className="px-2 py-0.5 bg-gray-800 text-gray-400 rounded text-xs">+{product.key_features.length - 2}</span>
-                        )}
-                      </div>
+                      <span className="px-2 py-1 bg-violet-500/10 text-violet-400 rounded text-xs">
+                        {product.sub_categories?.name || 'N/A'}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -475,15 +537,13 @@ export default function ProductsPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Key Features</label>
                 <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={newFeature}
-                    onChange={(e) => setNewFeature(e.target.value)}
-                    className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-pink-500"
-                    placeholder="Add a feature"
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
+                  <textarea
+                    value={featuresText}
+                    onChange={(e) => setFeaturesText(e.target.value)}
+                    className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-pink-500 min-h-[100px]"
+                    placeholder="Paste features here (one per line)"
                   />
-                  <button type="button" onClick={addFeature} className="px-4 py-2 bg-pink-500/20 text-pink-400 rounded-lg hover:bg-pink-500/30 transition-colors">
+                  <button type="button" onClick={addFeatures} className="px-4 py-2 bg-pink-500/20 text-pink-400 rounded-lg hover:bg-pink-500/30 transition-colors self-start">
                     Add
                   </button>
                 </div>
@@ -503,20 +563,35 @@ export default function ProductsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Images</label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={newImageUrl}
-                    onChange={(e) => setNewImageUrl(e.target.value)}
-                    className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-pink-500"
-                    placeholder="Image URL"
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addImage())}
-                  />
-                  <button type="button" onClick={addImage} className="px-4 py-2 bg-pink-500/20 text-pink-400 rounded-lg hover:bg-pink-500/30 transition-colors">
-                    Add
-                  </button>
+                
+                {/* File Upload */}
+                <div className="mb-3">
+                  <label className="flex items-center justify-center gap-2 px-4 py-3 bg-pink-500/20 text-pink-400 rounded-lg hover:bg-pink-500/30 transition-colors cursor-pointer border-2 border-dashed border-pink-500/30">
+                    {uploading ? (
+                      <>
+                        <div className="animate-spin w-5 h-5 border-2 border-pink-400 border-t-transparent rounded-full"></div>
+                        <span>Uploading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>Upload Images</span>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={uploading}
+                    />
+                  </label>
                 </div>
-                <div className="grid grid-cols-4 gap-2">
+
+                <div className="grid grid-cols-4 gap-2 mt-3">
                   {formData.images.map((image, index) => (
                     <div key={index} className="relative h-20 rounded-lg overflow-hidden group">
                       <Image src={image.url} alt={`Image ${index + 1}`} fill className="object-cover" />
@@ -534,18 +609,7 @@ export default function ProductsPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-6">
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Order</label>
-                  <input
-                    type="number"
-                    value={formData.order}
-                    onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-pink-500"
-                    min="0"
-                  />
-                </div>
-                <div className="flex items-center gap-3 pt-6">
+              <div className="flex items-center gap-3">
                   <input
                     type="checkbox"
                     id="is_active"
@@ -554,7 +618,6 @@ export default function ProductsPage() {
                     className="w-5 h-5 rounded bg-gray-800 border-gray-700 text-pink-500 focus:ring-pink-500"
                   />
                   <label htmlFor="is_active" className="text-sm text-gray-400">Active</label>
-                </div>
               </div>
 
               <div className="flex gap-3 pt-4">

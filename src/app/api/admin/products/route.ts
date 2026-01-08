@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       .from('products')
       .select(`
         *,
-        sub_category:sub_categories(id, name, slug)
+        sub_category:sub_categories!subcategory_id(id, name, slug)
       `)
       .order('created_at', { ascending: false });
 
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
         features: features || [],
         specifications: specifications || {},
         is_active: is_active ?? true,
-        sub_category_id,
+        subcategory_id: sub_category_id,
         meta_title,
         meta_description
       }])
@@ -131,7 +131,7 @@ export async function PUT(request: NextRequest) {
         features,
         specifications,
         is_active,
-        sub_category_id,
+        subcategory_id: sub_category_id,
         meta_title,
         meta_description
       })

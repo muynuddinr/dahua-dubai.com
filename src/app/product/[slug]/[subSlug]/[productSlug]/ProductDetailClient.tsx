@@ -484,29 +484,33 @@ export default function ProductDetailPageClient({
 
             <FaChevronRight className="w-1 h-1 sm:w-1.5 sm:h-1.5 text-slate-400 flex-shrink-0" />
 
+            {navbarCategory && (
+              <>
+                <Link
+                  href={navbarCategory.href}
+                  className="text-slate-600 hover:text-red-400 transition-colors whitespace-nowrap flex-shrink-0"
+                >
+                  {navbarCategory.name}
+                </Link>
+
+                <FaChevronRight className="w-1 h-1 sm:w-1.5 sm:h-1.5 text-slate-400 flex-shrink-0" />
+              </>
+            )}
+
             <Link
-              href={navbarCategory.href}
+              href={`/product/${category?.slug}`}
               className="text-slate-600 hover:text-red-400 transition-colors whitespace-nowrap flex-shrink-0"
             >
-              {navbarCategory.name}
+              {category?.name}
             </Link>
 
             <FaChevronRight className="w-1 h-1 sm:w-1.5 sm:h-1.5 text-slate-400 flex-shrink-0" />
 
             <Link
-              href={`/product/${category.slug}`}
+              href={`/product/${category?.slug}/${subCategory?.slug}`}
               className="text-slate-600 hover:text-red-400 transition-colors whitespace-nowrap flex-shrink-0"
             >
-              {category.name}
-            </Link>
-
-            <FaChevronRight className="w-1 h-1 sm:w-1.5 sm:h-1.5 text-slate-400 flex-shrink-0" />
-
-            <Link
-              href={`/product/${category.slug}/${subCategory.slug}`}
-              className="text-slate-600 hover:text-red-400 transition-colors whitespace-nowrap flex-shrink-0"
-            >
-              {subCategory.name}
+              {subCategory?.name}
             </Link>
 
             <FaChevronRight className="w-1 h-1 sm:w-1.5 sm:h-1.5 text-slate-400 flex-shrink-0" />

@@ -414,7 +414,9 @@ const Navbar = ({
                 alt={logo?.alt || "Logo"}
                 width={180}
                 height={60}
+                priority
                 className="h-22 sm:h-20 object-contain"
+                style={{ width: 'auto', height: 'auto' }}
               />
             </Link>
 
